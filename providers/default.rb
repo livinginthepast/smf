@@ -27,10 +27,6 @@ action :install do
   directory "#{xml_path}" do
   end
 
-  smf_service = service name do
-    action :nothing
-  end
-
   authorization = smf_authorization name
 
   permissions = ["solaris.smf.manage.#{name}", "solaris.smf.value.#{name}"]
