@@ -19,7 +19,7 @@ module SMF
     attr_reader :resource
 
     # delegate methods to :resource
-    def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path
+    def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path, :working_directory, :duration, :property_groups
     def_delegator :resource, :credentials_user, :user
 
     public
@@ -82,8 +82,11 @@ module SMF
             self.commands.each_pair do |type, command|
               if command
                 builder.exec_method_(:type => "method", :name => type, :exec => command, :timeout_seconds => self.timeout[type]) {
-                  builder.method_context_ {
-                    builder.method_credential_(:user => user, :privileges => "basic,net_privaddr")
+                  builder.method_context_(exec_context) {
+                    if user != "root"
+                      builder.method_credential_(:user => user, :privileges => "basic,net_privaddr")
+                    end
+                    
                     if self.environment
                       builder.method_environment_ {
                         self.environment.each_pair do |var, value|
@@ -98,8 +101,22 @@ module SMF
 
             builder.property_group_(:name => "general", :type => "framework") {
               builder.propval_(:name => "action_authorization", :type => "astring", :value => "solaris.smf.manage.#{name}")
-              builder.propval_(:name => "value_authorization", :type => "astring", :value => "solaris.smf.manage.#{name}")
+              builder.propval_(:name => "value_authorization", :type => "astring", :value => "solaris.smf.value.#{name}")
             }
+            
+            if duration != "contract"
+              builder.property_group_(:name => "startd", :type => "framework") {
+                builder.propval_(:name => "duration", :type => "astring", :value => duration)
+              }
+            end
+            
+            property_groups.each_pair do |name, properties|
+              builder.property_group_(:name => name, :type => properties.delete("type"){ |type| "application" }) {
+                properties.each_pair do |key, value|
+                  builder.propval_(:name => key, :value => value, :type => check_type(value))
+                end
+              }
+            end
 
             builder.template_ {
               builder.common_name_ {
@@ -112,6 +129,18 @@ module SMF
         }
       end
       xml_builder.to_xml
+    end
+    
+    def exec_context
+      {:working_directory => working_directory} unless working_directory.nil?
+    end
+    
+    def check_type(value)
+      if value == value.to_i
+        "integer"
+      else
+        "astring"
+      end
     end
   end
 end

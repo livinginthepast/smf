@@ -20,6 +20,7 @@
 action :install do
   name = new_resource.name
 
+  log("***** INSTALL: #{name}"){level :debug}
   user = new_resource.credentials_user
   xml_path = "#{new_resource.service_path}/#{new_resource.manifest_type}"
   xml_file = "#{xml_path}/#{name}.xml"
@@ -27,33 +28,56 @@ action :install do
   directory "#{xml_path}" do
   end
 
-  authorization = smf_authorization name
+  smf_service = service name do
+    action :nothing
+  end
 
-  permissions = ["solaris.smf.manage.#{name}", "solaris.smf.value.#{name}"]
-  Chef::Resource::SmfAuthorization.definitions << name
-  authorization.run_action(:define)
+  Chef::Resource::Rbac.definitions << name
 
   if user != "root"
-    Chef::Resource::SmfAuthorization.permissions[user] ||= []
-    Chef::Resource::SmfAuthorization.permissions[user] += permissions
+    Chef::Resource::Rbac.permissions[user] ||= []
+    Chef::Resource::Rbac.permissions[user] << name
   end
 
   xml_writer = SMF::XMLWriter.new(new_resource)
-  bash "create SMF manifest file #{xml_file}" do
-    user "root"
-    cwd xml_path
-    code <<-END
-      cat > #{xml_file} <<FILE
-#{xml_writer.to_xml}
-FILE
-    END
+  ruby_block "create SMF manifest file #{xml_file}" do
+    block do
+      ::File.open(xml_file, "w") do |file|
+        file.puts xml_writer.to_xml
+      end
+    end
 
     not_if "ls #{xml_file}"
   end
 
+  auth = rbac name
+  auth.run_action(:define)
   execute "import manifest" do
     command "svccfg import #{xml_file}"
-    notifies :apply, authorization unless user == "root"
+    notifies :apply, auth unless user == "root"
   end
 end
 
+action :redefine do
+  name = new_resource.name
+  execute "add SMF authorization to allow RBAC" do
+    command "svccfg -s #{name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{name}'"
+  end
+  execute "add SMF value to allow RBAC" do
+    command "svccfg -s #{name} setprop general/value_authorization=astring: 'solaris.smf.value.#{name}'"
+  end
+  execute "reload service" do
+    command "svcadm refresh #{name}"
+  end
+end
+
+action :delete do
+  service new_resource.name do
+    action [:stop, :disable]
+  end
+  
+  execute "remove service #{new_resource.name} from SMF" do
+    command "svccfg delete #{new_resource.name}"
+    only_if "svcs -a #{new_resource.name}"
+  end
+end
