@@ -32,6 +32,7 @@ attribute :manifest_type, :kind_of => String, :default => "application"
 attribute :service_path, :kind_of => String, :default => "/var/svc/manifest"
 attribute :working_directory, :kind_of => String, :default => nil
 attribute :duration, :kind_of => String, :default => "contract", :regex => "(contract|wait|transient)"
+attribute :ignore, :kind_of => Array, :default => nil
 
 attribute :property_groups, :kind_of => Hash, :default => {}
 

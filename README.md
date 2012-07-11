@@ -33,7 +33,7 @@ Any operating system that uses SMF, ie Solaris or SmartOS.
 * `service_path` - defaults to `/var/svc/manifest`
 * `manifest_type` - defaults to `application`
 * `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
-
+* `ignore` - Array - Faults to ignore in subprocesses. For example, if core dumps in children are handled by a master process and you don't want SMF thinking the service is exploding, you can ignore ["core", "signal"].
 
 ## Usage
 
@@ -82,6 +82,12 @@ to particular users with Role Based Access Control. In this case, the script can
 but with the start_command delegated to your user.
 
 A third option is `wait`. 
+
+## Ignore
+
+Sometimes you have a case where your service behaves poorly. The Ruby server Unicorn, for example, has a master 
+process that likes to kill its children. This causes core dumps that SMF will interpret to be a failing service.
+Instead you can `ignore ["core", "signal"]` and SMF will stop caring about core dumps.
 
 ## Property Groups
 

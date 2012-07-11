@@ -20,7 +20,7 @@ module SMF
 
     # delegate methods to :resource
     def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path, :working_directory, :duration, :property_groups
-    def_delegator :resource, :credentials_user, :user
+    def_delegator :resource, :credentials_user, :user, :ignore
 
     public
 
@@ -86,7 +86,7 @@ module SMF
                     if user != "root"
                       builder.method_credential_(:user => user, :privileges => "basic,net_privaddr")
                     end
-                    
+
                     if self.environment
                       builder.method_environment_ {
                         self.environment.each_pair do |var, value|
@@ -103,13 +103,14 @@ module SMF
               builder.propval_(:name => "action_authorization", :type => "astring", :value => "solaris.smf.manage.#{name}")
               builder.propval_(:name => "value_authorization", :type => "astring", :value => "solaris.smf.value.#{name}")
             }
-            
-            if duration != "contract"
+
+            if sets_duration? || ignores_faults?
               builder.property_group_(:name => "startd", :type => "framework") {
-                builder.propval_(:name => "duration", :type => "astring", :value => duration)
+                builder.propval_(:name => "duration", :type => "astring", :value => duration) if sets_duration?
+                builder.propval_(:name => "ignore_error", :type => "astring", :value => ignore.join(',')) if ignores_faults?
               }
             end
-            
+
             property_groups.each_pair do |name, properties|
               builder.property_group_(:name => name, :type => properties.delete("type"){ |type| "application" }) {
                 properties.each_pair do |key, value|
@@ -130,17 +131,25 @@ module SMF
       end
       xml_builder.to_xml
     end
-    
+
     def exec_context
       {:working_directory => working_directory} unless working_directory.nil?
     end
-    
+
     def check_type(value)
       if value == value.to_i
         "integer"
       else
         "astring"
       end
+    end
+
+    def ignores_faults?
+      ! ignore.nil?
+    end
+
+    def sets_duration?
+      duration != "contract"
     end
   end
 end
