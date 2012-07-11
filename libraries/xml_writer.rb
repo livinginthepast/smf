@@ -19,8 +19,8 @@ module SMF
     attr_reader :resource
 
     # delegate methods to :resource
-    def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path, :working_directory, :duration, :property_groups
-    def_delegator :resource, :credentials_user, :user, :ignore
+    def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path, :working_directory, :duration, :property_groups, :ignore
+    def_delegator :resource, :credentials_user, :user
 
     public
 
