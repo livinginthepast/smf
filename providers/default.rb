@@ -24,6 +24,7 @@ action :install do
   user = new_resource.credentials_user
   xml_path = "#{new_resource.service_path}/#{new_resource.manifest_type}"
   xml_file = "#{xml_path}/#{name}.xml"
+  tmp_file = "/tmp/#{name}.xml.tmp.#{$$}"
 
   directory "#{xml_path}" do
   end
@@ -40,14 +41,23 @@ action :install do
   end
 
   xml_writer = SMF::XMLWriter.new(new_resource)
-  ruby_block "create SMF manifest file #{xml_file}" do
+  # write file at all times
+  ruby_block "create SMF manifest file #{xml_file} into #{tmp_file}" do
     block do
-      ::File.open(xml_file, "w") do |file|
+      ::File.open(tmp_file, "w") do |file|
         file.puts xml_writer.to_xml
       end
     end
+  end
 
-    not_if "ls #{xml_file}"
+  execute "move the new #{xml_file} in place if changed" do
+    command "cp #{tmp_file} #{xml_file}"
+    not_if { `diff #{xml_file} #{tmp_file}`.chomp.empty? }
+  end
+
+  execute "remove generated temp file #{tmp_file}" do
+    command "rm -f #{tmp_file}"
+    only_if "ls #{tmp_file}"
   end
 
   auth = rbac name
