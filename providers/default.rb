@@ -52,7 +52,7 @@ action :install do
 
   execute "move the new #{xml_file} in place if changed" do
     command "cp #{tmp_file} #{xml_file}"
-    not_if { `diff #{xml_file} #{tmp_file}`.chomp.empty? }
+    not_if { ::File.exists?(xml_file) && `diff #{xml_file} #{tmp_file}`.chomp.empty? }
   end
 
   execute "remove generated temp file #{tmp_file}" do
