@@ -15,8 +15,6 @@ Any operating system that uses SMF, ie Solaris or SmartOS.
 
 ## Resources and Providers
 
-
-
 ## Attributes
 
 * `credentials_user` - User to run service commands as
@@ -38,28 +36,28 @@ Any operating system that uses SMF, ie Solaris or SmartOS.
 ## Usage
 
 ```ruby
-    smf "my-service" do
-      credentials_user "non-root-user"
-      start_command "my-service start"
-      start_timeout 10
-      stop_command "pkill my-service"
-      stop_command  5
-      restart_command "my-service restart"
-      restart_timeout 60
-      environment "PATH" => "/home/non-root-user/bin",
-                  "RAILS_ENV" => "staging"
-      locale "C"
-      manifest_type "application"
-      service_path  "/var/svc/manifest"
-    end
-    
-    service "my-service" do
-      action :enable
-    end
-    
-    service "my-service" do
-      action :restart
-    end
+smf "my-service" do
+  credentials_user "non-root-user"
+  start_command "my-service start"
+  start_timeout 10
+  stop_command "pkill my-service"
+  stop_command  5
+  restart_command "my-service restart"
+  restart_timeout 60
+  environment "PATH" => "/home/non-root-user/bin",
+              "RAILS_ENV" => "staging"
+  locale "C"
+  manifest_type "application"
+  service_path  "/var/svc/manifest"
+end
+
+service "my-service" do
+  action :enable
+end
+
+service "my-service" do
+  action :restart
+end
 ```
 
 ## Duration
