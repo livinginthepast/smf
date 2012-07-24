@@ -66,6 +66,20 @@ Any operating system that uses SMF, ie Solaris or SmartOS.
       action :restart
     end
 
+## Provider Actions
+
+### :install (default)
+
+This will drop a manifest XML file into `#{service_path}/#{manifest_type}/#{name}.xml`. If there is already a service
+with a name that is matched by `new_resource.name` then the FMRI of our manifest will be set to the FMRI of the 
+pre-existing service. In this case, our properties will be merged into the properties of the pre-existing service.
+
+In this way, updates to recipes that use the SMF provider will not delete existing service properties, but will add 
+or overwrite them.
+
+Because of this, the SMF provider can be used to update properties for
+services that are installed via a package manager.
+
 ## Duration
 
 There are several different ways that SMF can track your service. By default it uses `contract`. 

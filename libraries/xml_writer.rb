@@ -69,7 +69,7 @@ module SMF
       xml_builder = ::Nokogiri::XML::Builder.new do |builder|
         builder.doc.create_internal_subset("service_bundle", nil, "/usr/share/lib/xml/dtd/service_bundle.dtd.1")
         builder.service_bundle_(:name => name, :type => "manifest") {
-          builder.service_(:name => "#{manifest_type}/management/#{name}", :type => "service", :version => "1") {
+          builder.service_(:name => service_fmri, :type => "service", :version => "1") {
             builder.create_default_instance_(:enabled => "false")
             builder.single_instance_
 
@@ -150,6 +150,14 @@ module SMF
 
     def sets_duration?
       duration != "contract"
+    end
+
+    # resource.fmri is set in the SMF :install action of the default provider.
+    # If there is already a service with a name that is matched by our resource.name
+    # then we grab the FMRI (fault management resource identifier) from the system.
+    # If a service is not found, we set this to our own FMRI.
+    def service_fmri
+      resource.fmri.nil? || resource.fmri.empty? ? "#{manifest_type}/management/#{name}" : resource.fmri.gsub(/^\//,'')
     end
   end
 end

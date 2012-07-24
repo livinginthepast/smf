@@ -34,9 +34,24 @@ attribute :working_directory, :kind_of => String, :default => nil
 attribute :duration, :kind_of => String, :default => "contract", :regex => "(contract|wait|transient)"
 attribute :ignore, :kind_of => Array, :default => nil
 
+attribute :fmri, :kind_of => String, :default => nil
+
 attribute :property_groups, :kind_of => Hash, :default => {}
 
 def initialize(name, run_context=nil)
   super
   @action = :install
 end
+
+# This may be set in the SMF default provider if a service with the same name is already
+# installed. We do this in case we want to override a default SMF configuration with our own.
+#def frmi= (service_fmri)
+  #@fmri = service_fmri
+#end
+
+# This gets output in the manifest file as the FMRI (fault management resource identifier).
+# This is unique namespace that will identify this service in SMF, even though you can use
+# just the short name when using command line SMF arguments (if it is unique)
+#def fmri
+  #@fmri.nil? || @fmri.empty? ? "#{manifest_type}/management/#{name}" : @fmri
+#end
