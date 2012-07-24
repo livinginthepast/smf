@@ -37,23 +37,18 @@ Any operating system that uses SMF, ie Solaris or SmartOS.
 
 ## Usage
 
+```ruby
     smf "my-service" do
       credentials_user "non-root-user"
-      
       start_command "my-service start"
       start_timeout 10
-      
       stop_command "pkill my-service"
       stop_command  5
-      
       restart_command "my-service restart"
       restart_timeout 60
-      
       environment "PATH" => "/home/non-root-user/bin",
                   "RAILS_ENV" => "staging"
-      
       locale "C"
-      
       manifest_type "application"
       service_path  "/var/svc/manifest"
     end
@@ -65,6 +60,7 @@ Any operating system that uses SMF, ie Solaris or SmartOS.
     service "my-service" do
       action :restart
     end
+```
 
 ## Duration
 
@@ -94,6 +90,7 @@ Instead you can `ignore ["core", "signal"]` and SMF will stop caring about core 
 Property Groups are where you can store extra information for SMF to use later. They should be used in the
 following format:
 
+```ruby
     smf "my-service" do
       start_command "do-something"
       property_groups({
@@ -103,12 +100,14 @@ following format:
         }
       })
     end
+```
 
 `type` will default to `application`, and is used in the manifest XML to declare how the property group will be
 used. For this reason, `type` can not be used as a property name (ie variable).
 
 One way to use property groups is to pass variables on to commands, as follows:
 
+```ruby
     rails_env = node["from-chef-environment"]["rails-env"]
     
     smf "unicorn" do
@@ -123,6 +122,7 @@ One way to use property groups is to pass variables on to commands, as follows:
         }
       })
     end
+```
 
 This is especially handy if you have a case where your commands may come from role attributes, but can
 only work if they have access to variables set in an environment or computed in a recipe.
@@ -135,6 +135,7 @@ Below are some of the working examples using the SMF cookbook.
 
 These live in a library provider somewhere, and help start/stop pid-based processes.
 
+```ruby
     module ProcessHelpers
       def start_helper(cmd)
         "#{node[:bash]} -c 'export HOME=/home/#{node[:app][:user]} && export JAVA_HOME=/opt/local/java/sun6/ && export PATH=$JAVA_HOME/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin:$PATH && source $HOME/.bashrc && cd $HOME/#{node[:app][:dir]} && #{cmd}'"
@@ -147,6 +148,7 @@ These live in a library provider somewhere, and help start/stop pid-based proces
 
 ## Unicorn
 
+```ruby
     class Chef::Resource::Smf
       include ::ProcessHelpers
     end
@@ -167,10 +169,11 @@ These live in a library provider somewhere, and help start/stop pid-based proces
       duration "wait"
       working_directory "#{current_path}"
     end
-
+```
 
 ## SideKiq
 
+```ruby
     class Chef::Resource::Smf
       include ::ProcessHelpers
     end
@@ -204,5 +207,4 @@ These live in a library provider somewhere, and help start/stop pid-based proces
       stop_timeout 15
       working_directory "#{dir}"
     end
-
-
+```
