@@ -126,3 +126,83 @@ One way to use property groups is to pass variables on to commands, as follows:
 
 This is especially handy if you have a case where your commands may come from role attributes, but can
 only work if they have access to variables set in an environment or computed in a recipe.
+
+# Working Examples
+
+Below are some of the working examples using the SMF cookbook.
+
+## Shared Helpers
+
+These live in a library provider somewhere, and help start/stop pid-based processes.
+
+    module ProcessHelpers
+      def start_helper(cmd)
+        "#{node[:bash]} -c 'export HOME=/home/#{node[:app][:user]} && export JAVA_HOME=/opt/local/java/sun6/ && export PATH=$JAVA_HOME/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin:$PATH && source $HOME/.bashrc && cd $HOME/#{node[:app][:dir]} && #{cmd}'"
+      end
+      def stop_helper(pid, sig = :term)
+        "#{node[:bash]} -c 'if [ -f #{pid} ]; then kill -#{sig.to_s.upcase} `cat #{pid}` 2>/dev/null; fi; exit 0'"
+      end
+    end
+
+
+## Unicorn
+
+    class Chef::Resource::Smf
+      include ::ProcessHelpers
+    end
+
+    rails_env     = node[:rails_env]
+    user          = node[:app][:user]
+
+    current_path  = "/home/#{user}/#{node[:app][:dir]}"
+    unicorn_conf  = "#{current_path}/config/unicorn/#{rails_env}.rb"
+    unicorn_pid   = "#{current_path}/tmp/pids/unicorn.pid"
+
+    smf "unicorn" do
+      credentials_user user
+      start_command start_helper("(bundle exec unicorn_rails -c #{unicorn_conf} -E #{rails_env} -D)")
+      start_timeout 90
+      stop_command stop_helper(unicorn_pid, :term)
+      stop_timeout 30
+      duration "wait"
+      working_directory "#{current_path}"
+    end
+
+
+## SideKiq
+
+    class Chef::Resource::Smf
+      include ::ProcessHelpers
+    end
+
+    rails_env     = node[:rails_env]
+    user          = node[:app][:user]
+    dir           = "/home/#{user}/#{node[:app][:dir]}"
+
+    sidekiq_yml   = "#{dir}/config/sidekiq.yml"
+    sidekiq_pid   = "#{dir}/tmp/pids/sidekiq.pid"
+    sidekiq_log   = "#{dir}/log/sidekiq.log"
+
+    smf "sidekiq" do
+      credentials_user user
+      start_command start_helper("(bundle exec sidekiq -e #{rails_env} -C #{sidekiq_yml} -P #{sidekiq_pid} >> #{sidekiq_log} 2>&1 &)")
+      start_timeout 30
+      stop_command stop_helper(sidekiq_pid, :term)
+      stop_timeout 15
+      working_directory "#{dir}"
+    end
+
+    sidekiq_monitor_pid         = "#{dir}/tmp/pids/sidekiq_monitor.pid"
+    sidekiq_monitor_run_path    = "#{dir}/sidekiq_monitor.ru"
+    sidekiq_monitor_config_path = "#{dir}/config/unicorn/sidekiq_monitor.rb"
+
+    smf "sidekiq-monitor" do
+      credentials_user user
+      start_command start_helper("(BUNDLE_GEMFILE=#{dir}/Gemfile bundle exec unicorn -c #{sidekiq_monitor_config_path} -E #{rails_env} -D #{sidekiq_monitor_run_path} 2>&1)")
+      start_timeout 30
+      stop_command stop_helper(sidekiq_monitor_pid, :term)
+      stop_timeout 15
+      working_directory "#{dir}"
+    end
+
+
