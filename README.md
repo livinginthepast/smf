@@ -75,8 +75,22 @@ services that are installed via a package manager.
 
 Remove an SMF definition. This stops the service if it is running.
 
+## Resource Notes
 
-## Duration
+### `credentials_user`, `working_directory` and `environment`
+
+SMF does a remarkably good job running services as delegated users, and removes a lot of pain if you configure a 
+service correctly. There are many examples online (blogs, etc) of users wrapping their services in shell scripts with 
+`start`, `stop`, `restart` arguments. In general it seems as if the intention of these scripts is to take care of the
+problem of setting environment variables and shelling out as another user.
+
+The use of shell scripts to wrap executables is unnecessary with SMF, as it provides hooks for all of these use cases. 
+When using `credentials_user`, SMF will assume that the `working_directory` is the user's home directory. This can be 
+easily overwritten (to `/home/user/app/current` for a Rails application, for example). One thing to be careful of is 
+that shell profile files will not be loaded. For this reason, if paths are different on your system or require
+additional entries they may need to be altered using the `environment` attribute.
+
+### Duration
 
 There are several different ways that SMF can track your service. By default it uses `contract`. 
 Basically, this means that it will keep track of the PIDs of all daemonized processes generated from `start_command`.
@@ -93,13 +107,13 @@ but with the start_command delegated to your user.
 
 A third option is `wait`. 
 
-## Ignore
+### Ignore
 
 Sometimes you have a case where your service behaves poorly. The Ruby server Unicorn, for example, has a master 
 process that likes to kill its children. This causes core dumps that SMF will interpret to be a failing service.
 Instead you can `ignore ["core", "signal"]` and SMF will stop caring about core dumps.
 
-## Property Groups
+### Property Groups
 
 Property Groups are where you can store extra information for SMF to use later. They should be used in the
 following format:
@@ -141,7 +155,7 @@ end
 This is especially handy if you have a case where your commands may come from role attributes, but can
 only work if they have access to variables set in an environment or computed in a recipe.
 
-# Working Examples
+## Working Examples
 
 Below are some of the working examples using the SMF cookbook.
 
@@ -160,7 +174,11 @@ module ProcessHelpers
 end
 ```
 
-## Unicorn
+### Unicorn
+
+Here is an example that uses duration `wait`. Because of this, SMF does
+not watch pids in a contract, and the `stop_command` needs to figure out
+what processes are running.
 
 ```ruby
 class Chef::Resource::Smf
@@ -185,7 +203,50 @@ smf "unicorn" do
 end
 ```
 
-## SideKiq
+This example, while more verbose, uses the default `duration` of
+`contract`, and so SMF can take care of pid management. We are able to
+use `:kill` in the stop and restart commands.
+
+```ruby
+current_path = "/home/#{user}/#{node.app.dir}"
+rails_env = node.app.rails_env
+unicorn_path = "/home/#{user}/.rbenv/shims:/home/#{user}/.rbenv/bin"
+garbage_collection_settings = {
+  "RUBY_GC_MALLOC_LIMIT": 50000000,
+  "RUBY_HEAP_MIN_SLOTS": 500000,
+  "RUBY_HEAP_SLOTS_GROWTH_FACTOR": 1,
+  "RUBY_HEAP_SLOTS_INCREMENT": 250000
+}
+
+smf "unicorn" do
+  credentials_user user
+
+  start_command "bundle_exec unicorn_rails -c %{config/current_path}/config/unicorn/%{config/rails_env}.rb -E %{config/rails_env} -D"
+  start_timeout 90
+  stop_command ":kill"           ## this is redundant, as it is the default
+  stop_timeout 30
+  restart_command ":kill -SIGUSR2"
+  restart_timout 120
+
+  environment(
+    {"PATH" => unicorn_path}.merge(garbage_collection_settings)
+  )
+
+  ## If you get into a case where the unicorn master is frequently reaping workers, SMF may notice 
+  ## and put the service into maintenance mode. Instead, we tell SMF to ignore core dumps and 
+  ## signals to children.
+  ignore ["core","signal"]
+  property_groups({
+      "config" => {
+      "rails_env" => rails_env,
+      "current_path" => current_path
+    }
+  })
+  working_directory current_path
+end
+```
+
+### SideKiq
 
 ```ruby
 class Chef::Resource::Smf
