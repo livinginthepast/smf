@@ -12,6 +12,8 @@ The SMF cookbook contains providers for creating or modifying a service within t
 
 Any operating system that uses SMF, ie Solaris, SmartOS, OpenIndiana etc.
 
+Requires the RBAC cookbook, which can be found at https://github.com/modcloth-cookbooks/rbac.git
+
 ## Attributes
 
 * `credentials_user` - User to run service commands as
@@ -159,9 +161,10 @@ only work if they have access to variables set in an environment or computed in 
 
 Below are some of the working examples using the SMF cookbook.
 
-## Shared Helpers
+### Shared Helpers
 
-These live in a library provider somewhere, and help start/stop pid-based processes.
+These live in a library provider somewhere, and help start/stop pid-based processes. This strategy may
+be required when using the `wait` duration.
 
 ```ruby
 module ProcessHelpers
@@ -203,7 +206,7 @@ smf "unicorn" do
 end
 ```
 
-This example, while more verbose, uses the default `duration` of
+This example, while more verbose, uses the default duration of
 `contract`, and so SMF can take care of pid management. We are able to
 use `:kill` in the stop and restart commands.
 
@@ -237,7 +240,7 @@ smf "unicorn" do
   ## signals to children.
   ignore ["core","signal"]
   property_groups({
-      "config" => {
+    "config" => {
       "rails_env" => rails_env,
       "current_path" => current_path
     }
