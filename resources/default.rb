@@ -43,15 +43,3 @@ def initialize(name, run_context=nil)
   @action = :install
 end
 
-# This may be set in the SMF default provider if a service with the same name is already
-# installed. We do this in case we want to override a default SMF configuration with our own.
-#def frmi= (service_fmri)
-  #@fmri = service_fmri
-#end
-
-# This gets output in the manifest file as the FMRI (fault management resource identifier).
-# This is unique namespace that will identify this service in SMF, even though you can use
-# just the short name when using command line SMF arguments (if it is unique)
-#def fmri
-  #@fmri.nil? || @fmri.empty? ? "#{manifest_type}/management/#{name}" : @fmri
-#end

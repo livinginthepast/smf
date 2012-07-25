@@ -68,9 +68,16 @@ action :install do
 
   auth = rbac name
   auth.run_action(:define)
-  execute "import manifest" do
+  execute "import manifest from #{xml_file}" do
     command "svccfg import #{xml_file}"
     notifies :apply, auth unless user == "root"
+  end
+
+  # If we are overwriting properties from an old SMF definition (from pkgsrc, etc)
+  # there may be redundant XML files that we want to dereference
+  execute "remove #{name} service references to old manifest files" do
+    command "svccfg -s #{name} delprop `svcprop #{name} | grep manifestfiles | grep -v #{xml_file} | awk '{ print $1 }'` && svcadm refresh #{name}"
+    only_if { `svcprop #{name} | grep -c manifestfiles`.strip.to_i > 1 }
   end
 end
 
