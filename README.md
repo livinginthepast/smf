@@ -2,20 +2,15 @@
 
 ## Description
 
-Service Management Facility (SMF) is a tool in Solaris (and Solaris-like
-operating systems) for that treats services as first class objects of
-the system. It provides an XML syntax for declaring how the system can
-interact with an control a service.
+Service Management Facility (SMF) is a tool in many Illumos and Solaris-derived operating systems
+that treats services as first class objects of the system. It provides an XML syntax for 
+declaring how the system can interact with an control a service.
 
-The SMF cookbook provides providers for registering a service with SMF.
+The SMF cookbook contains providers for creating or modifying a service within the SMF framework.
 
 ## Requirements
 
-Any operating system that uses SMF, ie Solaris or SmartOS.
-
-## Resources and Providers
-
-
+Any operating system that uses SMF, ie Solaris, SmartOS, OpenIndiana etc.
 
 ## Attributes
 
@@ -79,6 +74,11 @@ or overwrite them.
 
 Because of this, the SMF provider can be used to update properties for
 services that are installed via a package manager.
+
+### :delete
+
+Remove an SMF definition. This stops the service if it is running.
+
 
 ## Duration
 
