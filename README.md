@@ -89,8 +89,8 @@ problem of setting environment variables and shelling out as another user.
 The use of shell scripts to wrap executables is unnecessary with SMF, as it provides hooks for all of these use cases. 
 When using `credentials_user`, SMF will assume that the `working_directory` is the user's home directory. This can be 
 easily overwritten (to `/home/user/app/current` for a Rails application, for example). One thing to be careful of is 
-that shell profile files will not be loaded. For this reason, if paths are different on your system or require
-additional entries they may need to be altered using the `environment` attribute.
+that shell profile files will not be loaded. For this reason, if environment variables (such as PATH) are different 
+on your system or require additional entries arbitrary key/values may be set using the `environment` attribute.
 
 ### Duration
 
