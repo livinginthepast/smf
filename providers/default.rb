@@ -41,11 +41,6 @@ action :install do
 
   Chef::Resource::Rbac.definitions << name
 
-  if user != "root"
-    Chef::Resource::Rbac.permissions[user] ||= []
-    Chef::Resource::Rbac.permissions[user] << name
-  end
-
   xml_writer = SMF::XMLWriter.new(new_resource)
   # write file at all times
   ruby_block "create SMF manifest file #{xml_file} into #{tmp_file}" do
@@ -70,7 +65,13 @@ action :install do
   auth.run_action(:define)
   execute "import manifest from #{xml_file}" do
     command "svccfg import #{xml_file}"
-    notifies :apply, auth unless user == "root"
+  end
+
+  unless user == "root"
+    rbac name do
+      user user
+      action :add_management_permissions
+    end
   end
 
   # If we are overwriting properties from an old SMF definition (from pkgsrc, etc)
