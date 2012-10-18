@@ -67,13 +67,6 @@ action :install do
     command "svccfg import #{xml_file}"
   end
 
-  unless user == "root"
-    rbac name do
-      user user
-      action :add_management_permissions
-    end
-  end
-
   # If we are overwriting properties from an old SMF definition (from pkgsrc, etc)
   # there may be redundant XML files that we want to dereference
   execute "remove #{name} service references to old manifest files" do
