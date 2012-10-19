@@ -31,7 +31,7 @@ attribute :locale, :kind_of => String, :default => "C"
 attribute :manifest_type, :kind_of => String, :default => "application"
 attribute :service_path, :kind_of => String, :default => "/var/svc/manifest"
 attribute :working_directory, :kind_of => String, :default => nil
-attribute :duration, :kind_of => String, :default => "contract", :regex => "(contract|wait|transient)"
+attribute :duration, :kind_of => String, :default => "contract", :regex => "(contract|wait|transient|child)"
 attribute :ignore, :kind_of => Array, :default => nil
 
 attribute :fmri, :kind_of => String, :default => nil

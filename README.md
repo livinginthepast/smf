@@ -24,7 +24,7 @@ Requires the RBAC cookbook, which can be found at https://github.com/modcloth-co
 * `restart_command` - defaults to `stop_command`, then `start_command`
 * `restart_timeout`
 * `working_directory` - PWD that SMF should cd to in order to run commands
-* `duration` - Can be either `contract`, `wait` or `transient`, but defaults to `contract`. See the Duration section below.
+* `duration` - Can be either `contract`, `wait`, `transient` or `child`, but defaults to `contract`. See the Duration section below.
 * `locale` - Character encoding to use (default "C")
 * `environment` - Hash - Environment variables to set while running commands
 * `service_path` - defaults to `/var/svc/manifest`
@@ -108,6 +108,8 @@ to particular users with Role Based Access Control. In this case, the script can
 but with the start_command delegated to your user.
 
 A third option is `wait`. 
+
+A fourth option is `child`.
 
 ### Ignore
 
