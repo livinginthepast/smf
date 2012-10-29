@@ -38,8 +38,8 @@ attribute :fmri, :kind_of => String, :default => nil
 
 attribute :property_groups, :kind_of => Hash, :default => {}
 
-def initialize(name, run_context=nil)
-  super
+def initialize(*args)
+  super(*args)
   @action = :install
 end
 
