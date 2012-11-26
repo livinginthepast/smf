@@ -42,7 +42,8 @@ module SMF
       @commands ||= {
         "start" => resource.start_command,
         "stop" => resource.stop_command,
-        "restart" => resource.restart_command
+        "restart" => resource.restart_command,
+        "refresh" => resource.refresh_command
       }
     end
 
@@ -50,7 +51,8 @@ module SMF
       @timeouts ||= {
         "start" => resource.start_timeout,
         "stop" => resource.stop_timeout,
-        "restart" => resource.restart_timeout
+        "restart" => resource.restart_timeout,
+        "refresh" => resource.refresh_timeout
       }
     end
 
