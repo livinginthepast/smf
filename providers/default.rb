@@ -84,16 +84,15 @@ end
 
 action :redefine do
   name = new_resource.name
-  execute "add SMF authorization to allow RBAC" do
+  execute "add SMF authorization to allow RBAC for #{name}" do
     command "svccfg -s #{name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{name}'"
     not_if "svcprop -p general/action_authorization #{name}"
+    notifies :reload, "service[#{name}]"
   end
-  execute "add SMF value to allow RBAC" do
+  execute "add SMF value to allow RBAC for #{name}" do
     command "svccfg -s #{name} setprop general/value_authorization=astring: 'solaris.smf.value.#{name}'"
     not_if "svcprop -p general/value_authorization #{name}"
-  end
-  execute "reload service" do
-    command "svcadm refresh #{name}"
+    notifies :reload, "service[#{name}]"
   end
 end
 
