@@ -19,8 +19,7 @@ module SMF
     attr_reader :resource
 
     # delegate methods to :resource
-    def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path, :working_directory, :duration, :property_groups, :ignore
-    def_delegator :resource, :credentials_user, :user
+    def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path, :working_directory, :duration, :property_groups, :ignore, :group
 
     public
 
@@ -58,10 +57,10 @@ module SMF
 
     def default_dependencies
       [
-        {:name => "milestone", :value => "/milestone/sysconfig"},
-        {:name => "fs-local", :value => "/system/filesystem/local"},
-        {:name => "name-services", :value => "/milestone/name-services"},
-        {:name => "network", :value => "/milestone/network"}
+        {'name' => "milestone", 'value' => "/milestone/sysconfig"},
+        {'name' => "fs-local", 'value' => "/system/filesystem/local"},
+        {'name' => "name-services", 'value' => "/milestone/name-services"},
+        {'name' => "network", 'value' => "/milestone/network"}
       ]
     end
 
@@ -70,29 +69,29 @@ module SMF
     def xml_output
       xml_builder = ::Nokogiri::XML::Builder.new do |builder|
         builder.doc.create_internal_subset("service_bundle", nil, "/usr/share/lib/xml/dtd/service_bundle.dtd.1")
-        builder.service_bundle_(:name => name, :type => "manifest") {
-          builder.service_(:name => service_fmri, :type => "service", :version => "1") {
-            builder.create_default_instance_(:enabled => "false")
+        builder.service_bundle_('name' => name, 'type' => "manifest") {
+          builder.service_('name' => service_fmri, 'type' => "service", 'version' => "1") {
+            builder.create_default_instance_('enabled' => "false")
             builder.single_instance_
 
             self.default_dependencies.each do |dependency|
-              builder.dependency_(:name => dependency[:name], :grouping => "require_all", :restart_on => "none", :type => "service") {
-                builder.service_fmri_(:value => "svc:#{dependency[:value]}")
+              builder.dependency_('name' => dependency['name'], 'grouping' => "require_all", 'restart_on' => "none", 'type' => "service") {
+                builder.service_fmri_('value' => "svc:#{dependency['value']}")
               }
             end
 
             self.commands.each_pair do |type, command|
               if command
-                builder.exec_method_(:type => "method", :name => type, :exec => command, :timeout_seconds => self.timeout[type]) {
+                builder.exec_method_('type' => "method", 'name' => type, 'exec' => command, 'timeout_seconds' => self.timeout[type]) {
                   builder.method_context_(exec_context) {
                     if user != "root"
-                      builder.method_credential_(:user => user, :privileges => "basic,net_privaddr")
+                      builder.method_credential_(credentials)
                     end
 
                     if self.environment
                       builder.method_environment_ {
                         self.environment.each_pair do |var, value|
-                          builder.envvar_(:name => var, :value => value)
+                          builder.envvar_('name' => var, 'value' => value)
                         end
                       }
                     end
@@ -101,22 +100,22 @@ module SMF
               end
             end
 
-            builder.property_group_(:name => "general", :type => "framework") {
-              builder.propval_(:name => "action_authorization", :type => "astring", :value => "solaris.smf.manage.#{name}")
-              builder.propval_(:name => "value_authorization", :type => "astring", :value => "solaris.smf.value.#{name}")
+            builder.property_group_('name' => "general", 'type' => "framework") {
+              builder.propval_('name' => "action_authorization", 'type' => "astring", 'value' => "solaris.smf.manage.#{name}")
+              builder.propval_('name' => "value_authorization", 'type' => "astring", 'value' => "solaris.smf.value.#{name}")
             }
 
             if sets_duration? || ignores_faults?
-              builder.property_group_(:name => "startd", :type => "framework") {
-                builder.propval_(:name => "duration", :type => "astring", :value => duration) if sets_duration?
-                builder.propval_(:name => "ignore_error", :type => "astring", :value => ignore.join(',')) if ignores_faults?
+              builder.property_group_('name' => "startd", 'type' => "framework") {
+                builder.propval_('name' => "duration", 'type' => "astring", 'value' => duration) if sets_duration?
+                builder.propval_('name' => "ignore_error", 'type' => "astring", 'value' => ignore.join(',')) if ignores_faults?
               }
             end
 
             property_groups.each_pair do |name, properties|
-              builder.property_group_(:name => name, :type => properties.delete("type"){ |type| "application" }) {
+              builder.property_group_('name' => name, 'type' => properties.delete("type"){ |type| "application" }) {
                 properties.each_pair do |key, value|
-                  builder.propval_(:name => key, :value => value, :type => check_type(value))
+                  builder.propval_('name' => key, 'value' => value, 'type' => check_type(value))
                 end
               }
             end
@@ -134,8 +133,18 @@ module SMF
       xml_builder.to_xml
     end
 
+    def credentials
+      creds = {'user' => user, 'privileges' => "basic,net_privaddr"}
+      creds.merge!('group' => group) unless group.nil?
+      creds
+    end
+
+    def user
+      resource.user || resource.credentials_user || "root"
+    end
+
     def exec_context
-      {:working_directory => working_directory} unless working_directory.nil?
+      {'working_directory' => working_directory} unless working_directory.nil?
     end
 
     def check_type(value)

@@ -20,8 +20,10 @@
 action :install do
   name = new_resource.name
 
+  chef_gem "nokogiri"
+
   log("***** INSTALL: #{name}"){level :debug}
-  user = new_resource.credentials_user
+  user = new_resource.user || new_resource.credentials_user || "root"
   xml_path = "#{new_resource.service_path}/#{new_resource.manifest_type}"
   xml_file = "#{xml_path}/#{name}.xml"
   tmp_file = "/tmp/#{name}.xml.tmp.#{$$}"
@@ -32,7 +34,7 @@ action :install do
     end
   end
 
-  directory "#{xml_path}" do
+  directory xml_path do
   end
 
   smf_service = service name do
@@ -58,7 +60,7 @@ action :install do
 
   execute "remove generated temp file #{tmp_file}" do
     command "rm -f #{tmp_file}"
-    only_if "ls #{tmp_file}"
+    only_if { ::File.exists?(tmp_file) }
   end
 
   auth = rbac name
@@ -67,11 +69,10 @@ action :install do
     command "svccfg import #{xml_file}"
   end
 
-  unless user == "root"
-    rbac name do
-      user user
-      action :add_management_permissions
-    end
+  rbac name do
+    user user
+    action :add_management_permissions
+    not_if { user == "root" }
   end
 
   # If we are overwriting properties from an old SMF definition (from pkgsrc, etc)

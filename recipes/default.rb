@@ -19,14 +19,4 @@ end
 
 xslt.run_action(:run)
 
-nokogiri = gem_package "nokogiri" do
-  version node['nokogiri']['version']
-  action :nothing
-end
-
-nokogiri.run_action(:install)
-
-log("requiring rubygems") { level :info }
-require 'rubygems'
-Gem.clear_paths
-require 'nokogiri'
+chef_gem "nokogiri"

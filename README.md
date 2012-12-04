@@ -16,7 +16,8 @@ Requires the RBAC cookbook, which can be found at https://github.com/modcloth-co
 
 ## Attributes
 
-* `credentials_user` - User to run service commands as
+* `user` - User to run service commands as
+* `group` - Group to run service commands as
 * `start_command`
 * `start_timeout`
 * `stop_command` - defaults to `:kill`, which basically means it will destroy every PID generated from the start command
@@ -31,12 +32,13 @@ Requires the RBAC cookbook, which can be found at https://github.com/modcloth-co
 * `manifest_type` - defaults to `application`
 * `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
 * `ignore` - Array - Faults to ignore in subprocesses. For example, if core dumps in children are handled by a master process and you don't want SMF thinking the service is exploding, you can ignore ["core", "signal"].
+* `credentials_user` - deprecated in favor of `user`
 
 ## Usage
 
 ```ruby
 smf "my-service" do
-  credentials_user "non-root-user"
+  user "non-root-user"
   start_command "my-service start"
   start_timeout 10
   stop_command "pkill my-service"
@@ -79,7 +81,7 @@ Remove an SMF definition. This stops the service if it is running.
 
 ## Resource Notes
 
-### `credentials_user`, `working_directory` and `environment`
+### `user`, `working_directory` and `environment`
 
 SMF does a remarkably good job running services as delegated users, and removes a lot of pain if you configure a 
 service correctly. There are many examples online (blogs, etc) of users wrapping their services in shell scripts with 
@@ -87,7 +89,7 @@ service correctly. There are many examples online (blogs, etc) of users wrapping
 problem of setting environment variables and shelling out as another user.
 
 The use of shell scripts to wrap executables is unnecessary with SMF, as it provides hooks for all of these use cases. 
-When using `credentials_user`, SMF will assume that the `working_directory` is the user's home directory. This can be 
+When using `user`, SMF will assume that the `working_directory` is the user's home directory. This can be
 easily overwritten (to `/home/user/app/current` for a Rails application, for example). One thing to be careful of is 
 that shell profile files will not be loaded. For this reason, if environment variables (such as PATH) are different 
 on your system or require additional entries arbitrary key/values may be set using the `environment` attribute.
@@ -198,7 +200,7 @@ unicorn_conf  = "#{current_path}/config/unicorn/#{rails_env}.rb"
 unicorn_pid   = "#{current_path}/tmp/pids/unicorn.pid"
 
 smf "unicorn" do
-  credentials_user user
+  user user
   start_command start_helper("(bundle exec unicorn_rails -c #{unicorn_conf} -E #{rails_env} -D)")
   start_timeout 90
   stop_command stop_helper(unicorn_pid, :term)
@@ -224,7 +226,7 @@ garbage_collection_settings = {
 }
 
 smf "unicorn" do
-  credentials_user user
+  user user
 
   start_command "bundle_exec unicorn_rails -c %{config/current_path}/config/unicorn/%{config/rails_env}.rb -E %{config/rails_env} -D"
   start_timeout 90
@@ -267,7 +269,7 @@ sidekiq_pid   = "#{dir}/tmp/pids/sidekiq.pid"
 sidekiq_log   = "#{dir}/log/sidekiq.log"
 
 smf "sidekiq" do
-  credentials_user user
+  user user
   start_command start_helper("(bundle exec sidekiq -e #{rails_env} -C #{sidekiq_yml} -P #{sidekiq_pid} >> #{sidekiq_log} 2>&1 &)")
   start_timeout 30
   stop_command stop_helper(sidekiq_pid, :term)
@@ -280,7 +282,7 @@ sidekiq_monitor_run_path    = "#{dir}/sidekiq_monitor.ru"
 sidekiq_monitor_config_path = "#{dir}/config/unicorn/sidekiq_monitor.rb"
 
 smf "sidekiq-monitor" do
-  credentials_user user
+  user user
   start_command start_helper("(BUNDLE_GEMFILE=#{dir}/Gemfile bundle exec unicorn -c #{sidekiq_monitor_config_path} -E #{rails_env} -D #{sidekiq_monitor_run_path} 2>&1)")
   start_timeout 30
   stop_command stop_helper(sidekiq_monitor_pid, :term)

@@ -19,7 +19,8 @@
 actions :install, :redefine, :delete
 
 attribute :name, :kind_of => String, :name_attribute => true, :required => true
-attribute :credentials_user, :kind_of => String, :default => "root"
+attribute :user, :kind_of => [String, NilClass], :default => nil
+attribute :group, :kind_of => [String, NilClass], :default => nil
 
 attribute :start_command, :kind_of => [String, NilClass], :default => nil
 attribute :start_timeout, :kind_of => Integer, :default => 5
@@ -42,6 +43,9 @@ attribute :ignore, :kind_of => [Array, NilClass], :default => nil
 attribute :fmri, :kind_of => String, :default => nil
 
 attribute :property_groups, :kind_of => Hash, :default => {}
+
+# Deprecated
+attribute :credentials_user, :kind_of => [String, NilClass], :default => nil
 
 def initialize(*args)
   super(*args)
