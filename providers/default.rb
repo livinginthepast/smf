@@ -53,20 +53,29 @@ action :install do
     end
   end
 
-  execute "move the new #{xml_file} in place if changed" do
-    command "cp #{tmp_file} #{xml_file}"
-    not_if { ::File.exists?(xml_file) && `diff #{xml_file} #{tmp_file}`.chomp.empty? }
+  xml_changed = false
+
+  ruby_block "check if #{xml_file} has changed" do
+    block do
+      xml_changed = !(::File.exists?(xml_file) && `diff #{xml_file} #{tmp_file}`.chomp.empty?)
+    end
   end
 
-  execute "remove generated temp file #{tmp_file}" do
-    command "rm -f #{tmp_file}"
-    only_if { ::File.exists?(tmp_file) }
+  execute "move the new #{xml_file} in place if changed" do
+    command "cp #{tmp_file} #{xml_file}"
+    only_if { xml_changed }
   end
 
   auth = rbac name
   auth.run_action(:define)
   execute "import manifest from #{xml_file}" do
     command "svccfg import #{xml_file}"
+    only_if { xml_changed }
+  end
+
+  execute "remove generated temp file #{tmp_file}" do
+    command "rm -f #{tmp_file}"
+    only_if { ::File.exists?(tmp_file) }
   end
 
   rbac name do
