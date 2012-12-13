@@ -4,7 +4,7 @@
 
 Service Management Facility (SMF) is a tool in many Illumos and Solaris-derived operating systems
 that treats services as first class objects of the system. It provides an XML syntax for 
-declaring how the system can interact with an control a service.
+declaring how the system can interact with and control a service.
 
 The SMF cookbook contains providers for creating or modifying a service within the SMF framework.
 
