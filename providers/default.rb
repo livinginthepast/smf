@@ -20,15 +20,15 @@
 action :install do
   name = new_resource.name
 
-  chef_gem "nokogiri"
+  chef_gem 'nokogiri'
 
-  log("***** INSTALL: #{name}"){level :debug}
-  user = new_resource.user || new_resource.credentials_user || "root"
+  Chef::Log.debug("***** INSTALL: #{name}")
+  user = new_resource.user || new_resource.credentials_user || 'root'
   xml_path = "#{new_resource.service_path}/#{new_resource.manifest_type}"
   xml_file = "#{xml_path}/#{name}.xml"
   tmp_file = "/tmp/#{name}.xml.tmp.#{$$}"
 
-  ruby_block "extract service long name from SMF if it already exists" do
+  ruby_block 'extract service long name from SMF if it already exists' do
     block do
       new_resource.fmri `svcs -H -o FMRI #{new_resource.name} | awk 'BEGIN { FS=":"}; {print $2}'`.strip
     end
@@ -37,7 +37,7 @@ action :install do
   directory xml_path do
   end
 
-  smf_service = service name do
+  service name do
     action :nothing
   end
 
@@ -47,7 +47,7 @@ action :install do
   # write file at all times
   ruby_block "create SMF manifest file #{xml_file} into #{tmp_file}" do
     block do
-      ::File.open(tmp_file, "w") do |file|
+      ::File.open(tmp_file, 'w') do |file|
         file.puts xml_writer.to_xml
       end
     end
