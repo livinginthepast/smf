@@ -19,7 +19,7 @@ module SMF
     attr_reader :resource
 
     # delegate methods to :resource
-    def_delegators :resource, :name, :environment, :locale, :manifest_type, :service_path, :working_directory, :duration, :property_groups, :ignore, :group
+    def_delegators :resource, :name, :duration, :environment, :group, :ignore, :locale, :manifest_type, :project, :property_groups, :service_path, :working_directory
 
     public
 
@@ -144,7 +144,10 @@ module SMF
     end
 
     def exec_context
-      {'working_directory' => working_directory} unless working_directory.nil?
+      context = {}
+      context['working_directory'] = working_directory unless working_directory.nil?
+      context['project'] = project unless project.nil?
+      context
     end
 
     def check_type(value)
