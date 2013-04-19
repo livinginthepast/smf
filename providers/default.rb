@@ -110,7 +110,7 @@ action :delete do
   service new_resource.name do
     action [:stop, :disable]
   end
-  
+
   execute "remove service #{new_resource.name} from SMF" do
     command "svccfg delete #{new_resource.name}"
     only_if "svcs -a #{new_resource.name}"
