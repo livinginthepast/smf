@@ -17,10 +17,12 @@
 # limitations under the License.
 #
 actions :install, :redefine, :delete
+default_action :install
 
 attribute :name, :kind_of => String, :name_attribute => true, :required => true
 attribute :user, :kind_of => [String, NilClass], :default => nil
 attribute :group, :kind_of => [String, NilClass], :default => nil
+attribute :project, :kind_of => [String, NilClass], :default => nil
 
 attribute :start_command, :kind_of => [String, NilClass], :default => nil
 attribute :start_timeout, :kind_of => Integer, :default => 5
@@ -46,9 +48,4 @@ attribute :property_groups, :kind_of => Hash, :default => {}
 
 # Deprecated
 attribute :credentials_user, :kind_of => [String, NilClass], :default => nil
-
-def initialize(*args)
-  super(*args)
-  @action = :install
-end
 
