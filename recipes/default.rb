@@ -11,12 +11,12 @@
 #  is loaded, otherwise they are not available when the
 #  cookbook runs.
 
-xslt = execute "install libxslt" do
-  command "pkgin -y install libxslt-1.1.26nb1"
-  not_if "pkgin list | grep libxslt"
+xslt = execute 'install libxslt' do
+  command 'pkgin -y install libxslt-1.1.26nb1'
+  not_if 'pkgin list | grep libxslt'
   action :nothing
 end
 
 xslt.run_action(:run)
 
-chef_gem "nokogiri"
+chef_gem 'nokogiri'

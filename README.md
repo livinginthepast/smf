@@ -14,10 +14,15 @@ Any operating system that uses SMF, ie Solaris, SmartOS, OpenIndiana etc.
 
 Requires the RBAC cookbook, which can be found at https://github.com/modcloth-cookbooks/rbac.git
 
+Processes can be run inside a project wrapper. In this case, look to the Resource Control cookbook,
+which can be found at https://github.com/wanelo-chef/resource-control. Note that the SMF LWRP
+does not create or manage the project.
+
 ## Attributes
 
 * `user` - User to run service commands as
 * `group` - Group to run service commands as
+* `project` - Name of project to run commands in
 * `start_command`
 * `start_timeout`
 * `stop_command` - defaults to `:kill`, which basically means it will destroy every PID generated from the start command
