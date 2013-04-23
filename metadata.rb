@@ -10,4 +10,4 @@ supports 'smartos'
 
 depends 'rbac', '>= 0.0.2'
 
-recommends 'resource-controls'
+recommends 'resource-control'
