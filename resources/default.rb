@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-actions :install, :redefine, :delete
+actions :install, :add_rbac, :delete
 default_action :install
 
 attribute :name, :kind_of => String, :name_attribute => true, :required => true

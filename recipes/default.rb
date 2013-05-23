@@ -20,3 +20,4 @@ end
 xslt.run_action(:run)
 
 chef_gem 'nokogiri'
+require 'nokogiri'

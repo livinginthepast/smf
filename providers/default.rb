@@ -20,8 +20,6 @@
 action :install do
   name = new_resource.name
 
-  chef_gem 'nokogiri'
-
   Chef::Log.debug("***** INSTALL: #{name}")
   user = new_resource.user || new_resource.credentials_user || 'root'
   xml_path = "#{new_resource.service_path}/#{new_resource.manifest_type}"
@@ -40,8 +38,6 @@ action :install do
   service name do
     action :nothing
   end
-
-  Chef::Resource::Rbac.definitions << name
 
   xml_writer = SMF::XMLWriter.new(new_resource)
   # write file at all times
@@ -66,8 +62,10 @@ action :install do
     only_if { xml_changed }
   end
 
-  auth = rbac name
-  auth.run_action(:define)
+  rbac name do
+    action :create
+  end
+
   execute "import manifest from #{xml_file}" do
     command "svccfg import #{xml_file}"
     only_if { xml_changed }
@@ -78,9 +76,9 @@ action :install do
     only_if { ::File.exists?(tmp_file) }
   end
 
-  rbac name do
+  rbac_auth "Add RBAC for #{name} to #{user}" do
     user user
-    action :add_management_permissions
+    auth name
     not_if { user == "root" }
   end
 
@@ -92,8 +90,13 @@ action :install do
   end
 end
 
-action :redefine do
+action :add_rbac do
   name = new_resource.name
+
+  rbac name do
+    action :create
+  end
+
   execute "add SMF authorization to allow RBAC for #{name}" do
     command "svccfg -s #{name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{name}'"
     not_if "svcprop -p general/action_authorization #{name}"
