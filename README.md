@@ -1,4 +1,5 @@
-# SMF
+SMF
+===
 
 ## Description
 
@@ -295,3 +296,7 @@ smf "sidekiq-monitor" do
   working_directory "#{dir}"
 end
 ```
+
+## TODO
+
+* tests... this was built before I knew about chefspec
