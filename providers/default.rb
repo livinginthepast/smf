@@ -5,104 +5,125 @@
 # Copyright 2011, ModCloth, Inc.
 #
 
+require 'chef/mixin/shell_out'
+include Chef::Mixin::ShellOut
+
+def load_current_resource
+  @current_resource = Chef::Resource::Smf.new(new_resource.name)
+  @current_resource.load
+
+  find_fmri
+end
+
 action :install do
-  name = new_resource.name
+  create_directories
+  write_xml
+  create_rbac_definitions
+  import_manifest
+  deduplicate_manifest
+  add_rbac_permissions
 
-  user = new_resource.user || new_resource.credentials_user || 'root'
-  xml_path = "#{new_resource.service_path}/#{new_resource.manifest_type}"
-  xml_file = "#{xml_path}/#{name}.xml"
-  tmp_file = "/tmp/#{name}.xml.tmp.#{$$}"
-
-  ruby_block 'extract service long name from SMF if it already exists' do
-    block do
-      new_resource.fmri `svcs -H -o FMRI #{new_resource.name} | awk 'BEGIN { FS=":"}; {print $2}'`.strip
-    end
-  end
-
-  directory xml_path do
-  end
-
-  service name do
-    action :nothing
-  end
-
-  xml_writer = SMF::XMLWriter.new(new_resource)
-  # write file at all times
-  ruby_block "create SMF manifest file #{xml_file} into #{tmp_file}" do
-    block do
-      ::File.open(tmp_file, 'w') do |file|
-        file.puts xml_writer.to_xml
-      end
-    end
-  end
-
-  xml_changed = false
-
-  ruby_block "check if #{xml_file} has changed" do
-    block do
-      xml_changed = !(::File.exists?(xml_file) && `diff #{xml_file} #{tmp_file}`.chomp.empty?)
-    end
-  end
-
-  execute "move the new #{xml_file} in place if changed" do
-    command "cp #{tmp_file} #{xml_file}"
-    only_if { xml_changed }
-  end
-
-  rbac name do
-    action :create
-  end
-
-  execute "import manifest from #{xml_file}" do
-    command "svccfg import #{xml_file}"
-    only_if { xml_changed }
-  end
-
-  execute "remove generated temp file #{tmp_file}" do
-    command "rm -f #{tmp_file}"
-    only_if { ::File.exists?(tmp_file) }
-  end
-
-  rbac_auth "Add RBAC for #{name} to #{user}" do
-    user user
-    auth name
-    not_if { user == "root" }
-  end
-
-  # If we are overwriting properties from an old SMF definition (from pkgsrc, etc)
-  # there may be redundant XML files that we want to dereference
-  execute "remove #{name} service references to old manifest files" do
-    command "svccfg -s #{name} delprop `svcprop #{name} | grep manifestfiles | grep -v #{xml_file} | awk '{ print $1 }'` && svcadm refresh #{name}"
-    only_if { `svcprop #{name} | grep -c manifestfiles`.strip.to_i > 1 }
-  end
+  new_resource.updated_by_last_action(smf_changed?)
+  new_resource.save_checksum
 end
 
 action :add_rbac do
-  name = new_resource.name
+  create_rbac_definitions
 
-  rbac name do
-    action :create
+  service new_resource.name
+
+  manage = execute "add SMF authorization to allow RBAC for #{new_resource.name}" do
+    command "svccfg -s #{new_resource.name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{new_resource.name}'"
+    not_if "svcprop -p general/action_authorization #{new_resource.name}"
+    notifies :reload, "service[#{new_resource.name}]"
   end
 
-  execute "add SMF authorization to allow RBAC for #{name}" do
-    command "svccfg -s #{name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{name}'"
-    not_if "svcprop -p general/action_authorization #{name}"
-    notifies :reload, "service[#{name}]"
+  value = execute "add SMF value to allow RBAC for #{new_resource.name}" do
+    command "svccfg -s #{new_resource.name} setprop general/value_authorization=astring: 'solaris.smf.value.#{new_resource.name}'"
+    not_if "svcprop -p general/value_authorization #{new_resource.name}"
+    notifies :reload, "service[#{new_resource.name}]"
   end
-  execute "add SMF value to allow RBAC for #{name}" do
-    command "svccfg -s #{name} setprop general/value_authorization=astring: 'solaris.smf.value.#{name}'"
-    not_if "svcprop -p general/value_authorization #{name}"
-    notifies :reload, "service[#{name}]"
-  end
+
+  new_resource.updated_by_last_action(manage.updated_by_last_action? || value.updated_by_last_action?)
 end
 
 action :delete do
   service new_resource.name do
     action [:stop, :disable]
+    only_if { smf_exists? }
   end
 
-  execute "remove service #{new_resource.name} from SMF" do
+  delete = execute "remove service #{new_resource.name} from SMF" do
     command "svccfg delete #{new_resource.name}"
-    only_if "svcs -a #{new_resource.name}"
+    only_if { smf_exists? }
+  end
+
+  new_resource.updated_by_last_action(delete.updated_by_last_action?)
+end
+
+private
+
+def smf_exists?
+  shell_out("svcs -a #{new_resource.name}").exit_status == 0
+end
+
+def smf_changed?
+  @current_resource.checksum != new_resource.checksum
+end
+
+def find_fmri
+  fmri_check = shell_out(%{svcs -H -o FMRI #{new_resource.name} | awk 'BEGIN { FS=":"}; {print $2}'})
+  if fmri_check.exitstatus == 0
+    new_resource.fmri fmri_check.stdout.chomp
+  else
+    new_resource.fmri "/#{new_resource.manifest_type}/management/#{new_resource.name}"
+  end
+end
+
+def create_directories
+  directory new_resource.xml_path
+end
+
+def write_xml
+  return unless smf_changed?
+
+  Chef::Log.debug "Writing SMF manifest to #{new_resource.xml_file}"
+  ::File.open(new_resource.xml_file, 'w') do |file|
+    file.puts SMFManifest::XMLBuilder.new(new_resource).to_xml
+  end
+end
+
+def create_rbac_definitions
+  rbac new_resource.name do
+    action :create
+  end
+end
+
+def add_rbac_permissions
+  user = new_resource.user || new_resource.credentials_user || 'root'
+
+  rbac_auth "Add RBAC for #{new_resource.name} to #{user}" do
+    user user
+    auth new_resource.name
+    not_if { user == "root" }
+  end
+end
+
+def import_manifest
+  return unless smf_changed?
+
+  Chef::Log.debug("importing SMF manifest #{new_resource.xml_file}")
+  shell_out!("svccfg import #{new_resource.xml_file}")
+end
+
+def deduplicate_manifest
+  # If we are overwriting properties from an old SMF definition (from pkgsrc, etc)
+  # there may be redundant XML files that we want to dereference
+  name = new_resource.name
+
+  duplicate_manifest = shell_out("svcprop #{name} | grep -c manifestfiles").stdout.strip.to_i > 1
+  if duplicate_manifest
+    Chef::Log.debug "Removing duplicate SMF manifest reference from #{name}"
+    shell_out! "svccfg -s #{name} delprop `svcprop #{name} | grep manifestfiles | grep -v #{new_resource.xml_file} | awk '{ print $1 }'` && svcadm refresh #{name}"
   end
 end
