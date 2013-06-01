@@ -1,4 +1,5 @@
-# SMF
+SMF
+===
 
 ## Description
 
@@ -12,10 +13,10 @@ The SMF cookbook contains providers for creating or modifying a service within t
 
 Any operating system that uses SMF, ie Solaris, SmartOS, OpenIndiana etc.
 
-Requires the RBAC cookbook, which can be found at https://github.com/modcloth-cookbooks/rbac.git
+Requires the RBAC cookbook, which can be found at <http://community.opscode.com/cookbooks/rbac>.
 
 Processes can be run inside a project wrapper. In this case, look to the Resource Control cookbook,
-which can be found at https://github.com/wanelo-chef/resource-control. Note that the SMF LWRP
+which can be found at <http://community.opscode.com/cookbooks/resource-control>. Note that the SMF LWRP
 does not create or manage the project.
 
 ## Attributes
@@ -84,6 +85,22 @@ services that are installed via a package manager.
 
 Remove an SMF definition. This stops the service if it is running.
 
+### :add_rbac
+
+This uses the `rbac` cookbook to define permissions that can then be applied to a user. This can be useful when local
+users should manage services that are added via packages.
+
+```ruby
+smf "nginx" do
+  action :add_rbac
+end
+
+rbac_auth "Allow my user to manage nginx" do
+  user "my_user"
+  auth "nginx"
+end
+```
+
 ## Resource Notes
 
 ### `user`, `working_directory` and `environment`
@@ -93,11 +110,16 @@ service correctly. There are many examples online (blogs, etc) of users wrapping
 `start`, `stop`, `restart` arguments. In general it seems as if the intention of these scripts is to take care of the
 problem of setting environment variables and shelling out as another user.
 
-The use of shell scripts to wrap executables is unnecessary with SMF, as it provides hooks for all of these use cases. 
+The use of init scripts to wrap executables can be unnecessary with SMF, as it provides hooks for all of these use cases. 
 When using `user`, SMF will assume that the `working_directory` is the user's home directory. This can be
 easily overwritten (to `/home/user/app/current` for a Rails application, for example). One thing to be careful of is 
 that shell profile files will not be loaded. For this reason, if environment variables (such as PATH) are different 
 on your system or require additional entries arbitrary key/values may be set using the `environment` attribute.
+
+All things considered, one should think carefully about the need for an init script when working with SMF. For 
+well-behaved applications with simple configuration, an init script is overkill. Applications with endless command-line 
+options or that need a real login shell (for instance ruby applications that use RVM) an init script may make life
+easier.
 
 ### Duration
 
@@ -261,10 +283,6 @@ end
 ### SideKiq
 
 ```ruby
-class Chef::Resource::Smf
-  include ::ProcessHelpers
-end
-
 rails_env     = node[:rails_env]
 user          = node[:app][:user]
 dir           = "/home/#{user}/#{node[:app][:dir]}"
@@ -275,23 +293,32 @@ sidekiq_log   = "#{dir}/log/sidekiq.log"
 
 smf "sidekiq" do
   user user
-  start_command start_helper("(bundle exec sidekiq -e #{rails_env} -C #{sidekiq_yml} -P #{sidekiq_pid} >> #{sidekiq_log} 2>&1 &)")
+  start_command "bundle exec sidekiq -e #{rails_env} -C #{sidekiq_yml} -P #{sidekiq_pid} >> #{sidekiq_log} 2>&1 &"
   start_timeout 30
-  stop_command stop_helper(sidekiq_pid, :term)
+  stop_command ':kill'
   stop_timeout 15
   working_directory "#{dir}"
+
+  environment 'BUNDLE_GEMFILE' => "#{dir}/Gemfile"
+              'PATH' => '/opt/rbenv/versions/1.9.3-p392:/opt/local/bin'
 end
 
-sidekiq_monitor_pid         = "#{dir}/tmp/pids/sidekiq_monitor.pid"
 sidekiq_monitor_run_path    = "#{dir}/sidekiq_monitor.ru"
 sidekiq_monitor_config_path = "#{dir}/config/unicorn/sidekiq_monitor.rb"
 
 smf "sidekiq-monitor" do
   user user
-  start_command start_helper("(BUNDLE_GEMFILE=#{dir}/Gemfile bundle exec unicorn -c #{sidekiq_monitor_config_path} -E #{rails_env} -D #{sidekiq_monitor_run_path} 2>&1)")
+  start_command "bundle exec unicorn -c #{sidekiq_monitor_config_path} -E #{rails_env} -D #{sidekiq_monitor_run_path} 2>&1)"
   start_timeout 30
-  stop_command stop_helper(sidekiq_monitor_pid, :term)
+  stop_command ':kill'
   stop_timeout 15
   working_directory "#{dir}"
+
+  environment 'BUNDLE_GEMFILE' => "#{dir}/Gemfile"
+              'PATH' => '/opt/rbenv/versions/1.9.3-p392:/opt/local/bin'
 end
 ```
+
+## TODO
+
+* tests... this was built before I knew about chefspec

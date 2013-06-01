@@ -4,8 +4,6 @@
 #
 # Copyright 2012, ModCloth, Inc.
 #
-# Apache 2.0 License
-#
 
 ## These libraries need to be installed when the cookbook
 #  is loaded, otherwise they are not available when the
@@ -20,3 +18,4 @@ end
 xslt.run_action(:run)
 
 chef_gem 'nokogiri'
+require 'nokogiri'

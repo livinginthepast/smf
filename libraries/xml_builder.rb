@@ -11,8 +11,8 @@ end
 
 require 'forwardable'
 
-module SMF
-  class XMLWriter
+module SMFManifest
+  class XMLBuilder
     # allow delegation
     extend Forwardable
 
@@ -39,28 +39,28 @@ module SMF
 
     def commands
       @commands ||= {
-        'start' => resource.start_command,
-        'stop' => resource.stop_command,
-        'restart' => resource.restart_command,
-        'refresh' => resource.refresh_command
+          'start' => resource.start_command,
+          'stop' => resource.stop_command,
+          'restart' => resource.restart_command,
+          'refresh' => resource.refresh_command
       }
     end
 
     def timeout
       @timeouts ||= {
-        'start' => resource.start_timeout,
-        'stop' => resource.stop_timeout,
-        'restart' => resource.restart_timeout,
-        'refresh' => resource.refresh_timeout
+          'start' => resource.start_timeout,
+          'stop' => resource.stop_timeout,
+          'restart' => resource.restart_timeout,
+          'refresh' => resource.refresh_timeout
       }
     end
 
     def default_dependencies
       [
-        {'name' => 'milestone', 'value' => '/milestone/sysconfig'},
-        {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
-        {'name' => 'name-services', 'value' => '/milestone/name-services'},
-        {'name' => 'network', 'value' => '/milestone/network'}
+          {'name' => 'milestone', 'value' => '/milestone/sysconfig'},
+          {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
+          {'name' => 'name-services', 'value' => '/milestone/name-services'},
+          {'name' => 'network', 'value' => '/milestone/network'}
       ]
     end
 
@@ -113,7 +113,7 @@ module SMF
             end
 
             property_groups.each_pair do |name, properties|
-              builder.property_group_('name' => name, 'type' => properties.delete('type'){ |type| 'application' }) {
+              builder.property_group_('name' => name, 'type' => properties.delete('type') { |type| 'application' }) {
                 properties.each_pair do |key, value|
                   builder.propval_('name' => key, 'value' => value, 'type' => check_type(value))
                 end
@@ -159,7 +159,7 @@ module SMF
     end
 
     def ignores_faults?
-      ! ignore.nil?
+      !ignore.nil?
     end
 
     def sets_duration?
@@ -171,7 +171,7 @@ module SMF
     # then we grab the FMRI (fault management resource identifier) from the system.
     # If a service is not found, we set this to our own FMRI.
     def service_fmri
-      resource.fmri.nil? || resource.fmri.empty? ? "#{manifest_type}/management/#{name}" : resource.fmri.gsub(/^\//,'')
+      resource.fmri.nil? || resource.fmri.empty? ? "#{manifest_type}/management/#{name}" : resource.fmri.gsub(/^\//, '')
     end
   end
 end
