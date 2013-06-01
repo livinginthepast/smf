@@ -85,6 +85,22 @@ services that are installed via a package manager.
 
 Remove an SMF definition. This stops the service if it is running.
 
+### :add_rbac
+
+This uses the `rbac` cookbook to define permissions that can then be applied to a user. This can be useful when local
+users should manage services that are added via packages.
+
+```ruby
+smf "nginx" do
+  action :add_rbac
+end
+
+rbac_auth "Allow my user to manage nginx" do
+  user "my_user"
+  auth "nginx"
+end
+```
+
 ## Resource Notes
 
 ### `user`, `working_directory` and `environment`
