@@ -17,7 +17,7 @@ end
 
 action :install do
   create_directories
-  write_xml
+  write_manifest
   create_rbac_definitions
   import_manifest
   deduplicate_manifest
@@ -48,23 +48,28 @@ action :add_rbac do
 end
 
 action :delete do
-  service new_resource.name do
-    action [:stop, :disable]
-    only_if { smf_exists? }
-  end
+  new_resource.updated_by_last_action(false)
 
-  delete = execute "remove service #{new_resource.name} from SMF" do
-    command "svccfg delete #{new_resource.name}"
-    only_if { smf_exists? }
-  end
+  if smf_exists?
+    service new_resource.name do
+      action [:stop, :disable]
+    end
 
-  new_resource.updated_by_last_action(delete.updated_by_last_action?)
+    execute "remove service #{new_resource.name} from SMF" do
+      command "svccfg delete #{new_resource.name}"
+    end
+
+    delete_manifest
+    new_resource.remove_checksum
+
+    new_resource.updated_by_last_action(true)
+  end
 end
 
 private
 
 def smf_exists?
-  shell_out("svcs -a #{new_resource.name}").exit_status == 0
+  shell_out("svcs -a #{new_resource.name}").exitstatus == 0
 end
 
 def smf_changed?
@@ -84,13 +89,20 @@ def create_directories
   directory new_resource.xml_path
 end
 
-def write_xml
+def write_manifest
   return unless smf_changed?
 
-  Chef::Log.debug "Writing SMF manifest to #{new_resource.xml_file}"
+  Chef::Log.debug "Writing SMF manifest for #{new_resource.name}"
   ::File.open(new_resource.xml_file, 'w') do |file|
     file.puts SMFManifest::XMLBuilder.new(new_resource).to_xml
   end
+end
+
+def delete_manifest
+  return unless ::File.exists?(new_resource.xml_file)
+
+  Chef::Log.debug "Removing SMF manifest for #{new_resource.name}"
+  ::File.delete(new_resource.xml_file)
 end
 
 def create_rbac_definitions

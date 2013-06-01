@@ -61,6 +61,13 @@ def save_checksum
   f.write self.checksum
 end
 
+def remove_checksum
+  return unless ::File.exists?(checksum_file)
+
+  Chef::Log.debug("Removing checksum for SMF #{self.name}")
+  ::File.delete(checksum_file)
+end
+
 # Load current resource from checksum file and projects database.
 # This should only ever be called on @current_resource, never on new_resource.
 #
