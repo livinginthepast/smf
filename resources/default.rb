@@ -27,6 +27,9 @@ attribute :duration, :kind_of => String, :default => "contract", :regex => "(con
 attribute :ignore, :kind_of => [Array, NilClass], :default => nil
 attribute :fmri, :kind_of => String, :default => nil
 
+attribute :stability, :kind_of => String, :equal_to => %(Standard Stable Evolving Unstable External Obsolete),
+  :default => "Evolving"
+
 attribute :property_groups, :kind_of => Hash, :default => {}
 
 # Deprecated
@@ -91,6 +94,7 @@ def checksum
       self.duration,
       self.ignore.to_s,
       self.fmri,
+      self.stability,
       self.environment_as_string
   ]
   @checksum ||= Digest::MD5.hexdigest(attributes.join(':'))

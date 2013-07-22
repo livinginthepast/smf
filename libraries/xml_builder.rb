@@ -19,7 +19,8 @@ module SMFManifest
     attr_reader :resource
 
     # delegate methods to :resource
-    def_delegators :resource, :name, :duration, :environment, :group, :ignore, :locale, :manifest_type, :project, :property_groups, :service_path, :working_directory
+    def_delegators :resource, :name, :duration, :environment, :group, :ignore, :locale, :manifest_type, 
+      :project, :property_groups, :service_path, :stability, :working_directory
 
     public
 
@@ -119,6 +120,8 @@ module SMFManifest
                 end
               }
             end
+
+            builder.stability_('value' => stability)
 
             builder.template_ {
               builder.common_name_ {

@@ -4,7 +4,7 @@ maintainer_email 'sax@livinginthepast.org'
 license          'MIT'
 description      'A light weight resource provider (LWRP) for SMF (Service Management Facility)'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '1.2.1'
+version          '1.3.0'
 
 supports 'smartos'
 

@@ -38,6 +38,9 @@ does not create or manage the project.
 * `manifest_type` - defaults to `application`
 * `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
 * `ignore` - Array - Faults to ignore in subprocesses. For example, if core dumps in children are handled by a master process and you don't want SMF thinking the service is exploding, you can ignore ["core", "signal"].
+* `stability` - String - defaults to "Evolving". Valid options are
+  "Standard", "Stable", "Evolving", "Unstable", "External" and
+  "Obsolete"
 * `credentials_user` - deprecated in favor of `user`
 
 ## Usage
