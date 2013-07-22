@@ -81,23 +81,23 @@ module SMFManifest
               }
             end
 
+            builder.method_context_(exec_context) {
+              if user != 'root'
+                builder.method_credential_(credentials)
+              end
+
+              if self.environment
+                builder.method_environment_ {
+                  self.environment.each_pair do |var, value|
+                    builder.envvar_('name' => var, 'value' => value)
+                  end
+                }
+              end
+            }
+
             self.commands.each_pair do |type, command|
               if command
-                builder.exec_method_('type' => 'method', 'name' => type, 'exec' => command, 'timeout_seconds' => self.timeout[type]) {
-                  builder.method_context_(exec_context) {
-                    if user != 'root'
-                      builder.method_credential_(credentials)
-                    end
-
-                    if self.environment
-                      builder.method_environment_ {
-                        self.environment.each_pair do |var, value|
-                          builder.envvar_('name' => var, 'value' => value)
-                        end
-                      }
-                    end
-                  }
-                }
+                builder.exec_method_('type' => 'method', 'name' => type, 'exec' => command, 'timeout_seconds' => self.timeout[type])
               end
             end
 

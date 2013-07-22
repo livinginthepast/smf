@@ -95,7 +95,8 @@ def checksum
       self.ignore.to_s,
       self.fmri,
       self.stability,
-      self.environment_as_string
+      self.environment_as_string,
+      "0"
   ]
   @checksum ||= Digest::MD5.hexdigest(attributes.join(':'))
 end
