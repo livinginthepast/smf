@@ -3,13 +3,9 @@
 #  is loaded, otherwise they are not available when the
 #  cookbook runs.
 
-xslt = execute 'install libxslt' do
-  command 'pkgin -y install libxslt-1.1.26nb1'
-  not_if 'pkgin list | grep libxslt'
+package 'libxslt' do
   action :nothing
-end
-
-xslt.run_action(:run)
+end.run_action(:install)
 
 ruby_block "setup nokogiri environment" do
   block do
