@@ -1,9 +1,3 @@
-#
-# Cookbook Name:: smf
-# Provider:: smf
-#
-# Copyright 2011, ModCloth, Inc.
-#
 
 require 'chef/mixin/shell_out'
 include Chef::Mixin::ShellOut

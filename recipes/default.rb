@@ -1,9 +1,3 @@
-#
-# Cookbook Name:: smf
-# Recipe:: default
-#
-# Copyright 2012, ModCloth, Inc.
-#
 
 ## These libraries need to be installed when the cookbook
 #  is loaded, otherwise they are not available when the

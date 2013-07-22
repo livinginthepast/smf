@@ -1,9 +1,3 @@
-#
-# Cookbook Name:: smf
-# Resource:: smf
-#
-# Copyright 2012, ModCloth, Inc.
-#
 
 actions :install, :add_rbac, :delete
 default_action :install
