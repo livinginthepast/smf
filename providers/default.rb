@@ -1,5 +1,6 @@
 
 require 'chef/mixin/shell_out'
+require 'fileutils'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
@@ -80,7 +81,8 @@ def find_fmri
 end
 
 def create_directories
-  directory new_resource.xml_path
+  Chef::Log.debug "Creating manifest directory at #{new_resource.xml_path}"
+  FileUtils.mkdir_p new_resource.xml_path
 end
 
 def write_manifest
