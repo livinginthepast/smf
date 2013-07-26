@@ -19,6 +19,9 @@ attribute :restart_timeout, :kind_of => Integer, :default => 5
 attribute :refresh_command, :kind_of => [String, NilClass], :default => nil
 attribute :refresh_timeout, :kind_of => Integer, :default => 5
 
+attribute :include_default_dependencies, :kind_of => [TrueClass, FalseClass], :default => true
+attribute :dependencies, :kind_of => [Array], :default => []
+
 attribute :working_directory, :kind_of => [String, NilClass], :default => nil
 attribute :environment, :kind_of => [Hash, NilClass], :default => nil
 attribute :locale, :kind_of => String, :default => "C"
@@ -98,6 +101,8 @@ def checksum
       self.service_path,
       self.duration,
       self.ignore.to_s,
+      self.include_default_dependencies,
+      self.dependencies,
       self.fmri,
       self.stability,
       self.environment_as_string,

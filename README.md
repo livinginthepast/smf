@@ -55,6 +55,13 @@ Ownership:
 * `user` - User to run service commands as
 * `group` - Group to run service commands as
 
+Dependency management:
+* `include_default_dependencies` - Service should depend on file system
+  and network services. Defaults to `true`. See [Dependencies](#dependencies)
+  for more info.
+* `dependency` - an optional array of hashes signifying service and path
+  dependencies for this service to run. See [Dependencies](#dependencies).
+
 Process management:
 * `project` - Name of project to run commands in
 * `start_command`
@@ -72,11 +79,11 @@ Process management:
   ["core", "signal"].
 * `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
 * `working_directory` - PWD that SMF should cd to in order to run commands
+* `locale` - Character encoding to use (default "C")
 
 Manifest/FMRI metadata:
 * `service_path` - defaults to `/var/svc/manifest`
 * `manifest_type` - defaults to `application`
-* `locale` - Character encoding to use (default "C")
 * `stability` - String - defaults to "Evolving". Valid options are
   "Standard", "Stable", "Evolving", "Unstable", "External" and
   "Obsolete"
@@ -140,6 +147,58 @@ well-behaved applications with simple configuration, an init script is overkill.
 options or that need a real login shell (for instance ruby applications that use RVM) an init script may make life
 easier.
 
+### Dependencies
+
+SMF allows services to explicitly list their dependencies on other
+services. Among other things, this ensures that services are enabled in
+the proper order on boot, so that a service doesn't fail to start
+because another service has not yet been started.
+
+By default, services created by the SMF LWRP depend on the following other services:
+* svc:/milestone/sysconfig
+* svc:/system/filesystem/local
+* svc:/milestone/name-services
+* svc:/milestone/network
+
+These are configured with the attribute `include_default_dependencies`,
+which defaults to `true`.
+
+Other dependencies can be specified with the `dependencies` attribute,
+which takes an array of hashes as follows:
+
+```ruby
+smf 'redis' do
+ 
+end
+
+smf 'redis-6999' do
+  start_command "..."
+  dependencies [
+    {name: 'redis', fmris: ['svc:/application/management/redis'],
+     grouping: 'require_all', restart_on: 'restart', type: 'service'}
+  ]
+end
+```
+
+Valid options for grouping:
+* require_all - All listed FMRIs must be online
+* require_any - Any of the listed FMRIs must be online
+* exclude_all - None of the listed FMRIs can be online
+* optional_all - FMRIs are either online or unable to come online
+
+Valid options for restart_on:
+* error - Hardware fault
+* restart - Restarts service if the depedency is restarted
+* refresh - Restarted if the dependency is restarted or refreshed for
+  any reason
+* none - Don't do anything
+
+Valid options for type:
+* service - expects dependency FMRIs to be other services ie: svc:/type/of/service:instance
+* path - expects FMRIs to be paths, ie file://localhost/etc/redis/redis.conf
+
+Note: the provider currently does not do any validation of these values.
+
 ### Duration
 
 There are several different ways that SMF can track your service. By default it uses `contract`. 
@@ -155,7 +214,7 @@ This can be used, for instance, for a script that must be run at boot time, or f
 to particular users with Role Based Access Control. In this case, the script can be registered with SMF to run as root,
 but with the start_command delegated to your user.
 
-A third option is `wait`. 
+A third option is `wait`. This covers non-daemonized processes.
 
 A fourth option is `child`.
 

@@ -19,8 +19,9 @@ module SMFManifest
     attr_reader :resource
 
     # delegate methods to :resource
-    def_delegators :resource, :name, :duration, :environment, :group, :ignore, :locale, :manifest_type, 
-      :project, :property_groups, :service_path, :stability, :working_directory
+    def_delegators :resource, :name, :dependencies, :duration, :environment, :group, :ignore,
+      :include_default_dependencies, :locale, :manifest_type,  :project, :property_groups,
+      :service_path, :stability, :working_directory
 
     public
 
@@ -75,9 +76,22 @@ module SMFManifest
             builder.create_default_instance_('enabled' => 'false')
             builder.single_instance_
 
-            self.default_dependencies.each do |dependency|
-              builder.dependency_('name' => dependency['name'], 'grouping' => 'require_all', 'restart_on' => 'none', 'type' => 'service') {
-                builder.service_fmri_('value' => "svc:#{dependency['value']}")
+            if self.include_default_dependencies
+              self.default_dependencies.each do |dependency|
+                builder.dependency_('name' => dependency['name'], 'grouping' => 'require_all', 'restart_on' => 'none', 'type' => 'service') {
+                  builder.service_fmri_('value' => "svc:#{dependency['value']}")
+                }
+              end
+            end
+
+            self.dependencies.each do |dependency|
+              builder.dependency_('name' => dependency['name'],
+                                  'grouping' => dependency['grouping'],
+                                  'restart_on' => dependency['restart_on'],
+                                  'type' => dependency['type']) {
+                dependency['fmris'].each do |service_fmri|
+                  builder.service_fmri_('value' => service_fmri)
+                end
               }
             end
 
