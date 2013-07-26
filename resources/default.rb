@@ -1,4 +1,7 @@
 
+require 'chef/mixin/shell_out'
+include Chef::Mixin::ShellOut
+
 actions :install, :add_rbac, :delete
 default_action :install
 
@@ -70,7 +73,9 @@ end
 #
 def load
   @checksum ||= ::File.exists?(checksum_file) ? ::File.read(checksum_file) : ''
+  @smf_exists = shell_out("svcs #{self.fmri}").exitstatus == 0
   Chef::Log.debug("Loaded checksum for SMF #{self.name}: #{@checksum}")
+  Chef::Log.debug("SMF service already exists for #{self.fmri}? #{@smf_exists.inspect}")
 end
 
 def checksum
@@ -108,4 +113,8 @@ end
 def environment_as_string
   return nil if self.environment.nil?
   self.environment.inject('') { |memo, k,v| memo << [k,v].join('|')}
+end
+
+def smf_exists?
+  @smf_exists
 end

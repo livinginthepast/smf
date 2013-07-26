@@ -4,10 +4,11 @@ require 'fileutils'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
-  @current_resource = Chef::Resource::Smf.new(new_resource.name)
-  @current_resource.load
-
   find_fmri
+
+  @current_resource = Chef::Resource::Smf.new(new_resource.name)
+  @current_resource.fmri(new_resource.fmri)
+  @current_resource.load
 end
 
 action :install do
@@ -45,7 +46,7 @@ end
 action :delete do
   new_resource.updated_by_last_action(false)
 
-  if smf_exists?
+  if @current_resource.smf_exists?
     service new_resource.name do
       action [:stop, :disable]
     end
@@ -63,18 +64,14 @@ end
 
 private
 
-def smf_exists?
-  shell_out("svcs -a #{new_resource.name}").exitstatus == 0
-end
-
 def smf_changed?
-  @current_resource.checksum != new_resource.checksum
+  @current_resource.checksum != new_resource.checksum || !@current_resource.smf_exists?
 end
 
 def find_fmri
-  fmri_check = shell_out(%{svcs -H -o FMRI #{new_resource.name} | awk 'BEGIN { FS=":"}; {print $2}'})
+  fmri_check = shell_out(%{svcs -H -o FMRI #{new_resource.name}})
   if fmri_check.exitstatus == 0
-    new_resource.fmri fmri_check.stdout.chomp
+    new_resource.fmri fmri_check.stdout.chomp.split(':')[1]
   else
     new_resource.fmri "/#{new_resource.manifest_type}/management/#{new_resource.name}"
   end
