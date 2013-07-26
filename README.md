@@ -9,6 +9,7 @@ declaring how the system can interact with and control a service.
 
 The SMF cookbook contains providers for creating or modifying a service within the SMF framework.
 
+
 ## Requirements
 
 Any operating system that uses SMF, ie Solaris, SmartOS, OpenIndiana etc.
@@ -19,31 +20,8 @@ Processes can be run inside a project wrapper. In this case, look to the Resourc
 which can be found at <http://community.opscode.com/cookbooks/resource-control>. Note that the SMF LWRP
 does not create or manage the project.
 
-## Attributes
 
-* `user` - User to run service commands as
-* `group` - Group to run service commands as
-* `project` - Name of project to run commands in
-* `start_command`
-* `start_timeout`
-* `stop_command` - defaults to `:kill`, which basically means it will destroy every PID generated from the start command
-* `stop_timeout`
-* `restart_command` - defaults to `stop_command`, then `start_command`
-* `restart_timeout`
-* `working_directory` - PWD that SMF should cd to in order to run commands
-* `duration` - Can be either `contract`, `wait`, `transient` or `child`, but defaults to `contract`. See the Duration section below.
-* `locale` - Character encoding to use (default "C")
-* `environment` - Hash - Environment variables to set while running commands
-* `service_path` - defaults to `/var/svc/manifest`
-* `manifest_type` - defaults to `application`
-* `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
-* `ignore` - Array - Faults to ignore in subprocesses. For example, if core dumps in children are handled by a master process and you don't want SMF thinking the service is exploding, you can ignore ["core", "signal"].
-* `stability` - String - defaults to "Evolving". Valid options are
-  "Standard", "Stable", "Evolving", "Unstable", "External" and
-  "Obsolete"
-* `credentials_user` - deprecated in favor of `user`
-
-## Usage
+## Basic Usage
 
 ```ruby
 smf "my-service" do
@@ -69,6 +47,43 @@ service "my-service" do
   action :restart
 end
 ```
+
+
+## Attributes
+
+Ownership:
+* `user` - User to run service commands as
+* `group` - Group to run service commands as
+
+Process management:
+* `project` - Name of project to run commands in
+* `start_command`
+* `start_timeout`
+* `stop_command` - defaults to `:kill`, which basically means it will destroy every PID generated from the start command
+* `stop_timeout`
+* `restart_command` - defaults to `stop_command`, then `start_command`
+* `restart_timeout`
+* `duration` - Can be either `contract`, `wait`, `transient` or 
+  `child`, but defaults to `contract`. See the [Duration](#duration) section below.
+* `environment` - Hash - Environment variables to set while running commands
+* `ignore` - Array - Faults to ignore in subprocesses. For example, 
+  if core dumps in children are handled by a master process and you 
+  don't want SMF thinking the service is exploding, you can ignore 
+  ["core", "signal"].
+* `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
+* `working_directory` - PWD that SMF should cd to in order to run commands
+
+Manifest/FMRI metadata:
+* `service_path` - defaults to `/var/svc/manifest`
+* `manifest_type` - defaults to `application`
+* `locale` - Character encoding to use (default "C")
+* `stability` - String - defaults to "Evolving". Valid options are
+  "Standard", "Stable", "Evolving", "Unstable", "External" and
+  "Obsolete"
+
+Deprecated:
+* `credentials_user` - deprecated in favor of `user`
+
 
 ## Provider Actions
 
@@ -103,6 +118,7 @@ rbac_auth "Allow my user to manage nginx" do
   auth "nginx"
 end
 ```
+
 
 ## Resource Notes
 
@@ -190,6 +206,14 @@ end
 
 This is especially handy if you have a case where your commands may come from role attributes, but can
 only work if they have access to variables set in an environment or computed in a recipe.
+
+### Stability
+
+This is for reference more than anything, so that administrators of a service know what to expect of possible changes to 
+the service definition.
+
+See: <http://www.cuddletech.com/blog/pivot/entry.php?id=182>
+
 
 ## Working Examples
 
@@ -321,6 +345,7 @@ smf "sidekiq-monitor" do
               'PATH' => '/opt/rbenv/versions/1.9.3-p392:/opt/local/bin'
 end
 ```
+
 
 ## TODO
 
