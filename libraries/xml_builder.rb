@@ -67,7 +67,7 @@ module SMFManifest
       xml_builder.instruct!
       xml_builder.declare! :DOCTYPE, :service_bundle, :SYSTEM, "/usr/share/lib/xml/dtd/service_bundle.dtd.1"
       xml_builder.service_bundle('name' => name, 'type' => 'manifest') do |xml|
-        xml.service('name' => "application/management/collectd", 'type' => "service", 'version' => "1") do |service|
+        xml.service('name' => service_fmri, 'type' => "service", 'version' => "1") do |service|
           service.create_default_instance('enabled' => 'false')
           service.single_instance
 
