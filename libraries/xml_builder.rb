@@ -3,12 +3,6 @@
 #  installed at load time by recipes/default.rb, so that at run
 #  time nokogiri will be present.
 #
-begin
-  require 'nokogiri'
-rescue LoadError
-  Chef::Log.warn('Missing gem "nokogiri"')
-end
-
 require 'forwardable'
 
 module SMFManifest
@@ -69,85 +63,84 @@ module SMFManifest
     private
 
     def xml_output
-      xml_builder = ::Nokogiri::XML::Builder.new do |builder|
-        builder.doc.create_internal_subset('service_bundle', nil, '/usr/share/lib/xml/dtd/service_bundle.dtd.1')
-        builder.service_bundle_('name' => name, 'type' => 'manifest') {
-          builder.service_('name' => service_fmri, 'type' => 'service', 'version' => '1') {
-            builder.create_default_instance_('enabled' => 'false')
-            builder.single_instance_
+      xml_builder = ::Builder::XmlMarkup.new(:indent => 2)
+      xml_builder.instruct!
+      xml_builder.declare! :DOCTYPE, :service_bundle, :SYSTEM, "/usr/share/lib/xml/dtd/service_bundle.dtd.1"
+      xml_builder.service_bundle('name' => name, 'type' => 'manifest') do |xml|
+        xml.service('name' => "application/management/collectd", 'type' => "service", 'version' => "1") do |service|
+          service.create_default_instance('enabled' => 'false')
+          service.single_instance
 
-            if self.include_default_dependencies
-              self.default_dependencies.each do |dependency|
-                builder.dependency_('name' => dependency['name'], 'grouping' => 'require_all', 'restart_on' => 'none', 'type' => 'service') {
-                  builder.service_fmri_('value' => "svc:#{dependency['value']}")
-                }
+          if self.include_default_dependencies
+            self.default_dependencies.each do |dependency|
+              service.dependency('name' => dependency['name'], 'grouping' => 'require_all', 'restart_on' => 'none', 'type' => 'service') do |dep|
+                dep.service_fmri('value' => "svc:#{dependency['value']}")
               end
             end
-
-            self.dependencies.each do |dependency|
-              builder.dependency_('name' => dependency['name'],
-                                  'grouping' => dependency['grouping'],
-                                  'restart_on' => dependency['restart_on'],
-                                  'type' => dependency['type']) {
-                dependency['fmris'].each do |service_fmri|
-                  builder.service_fmri_('value' => service_fmri)
+          end
+  
+          self.dependencies.each do |dependency|
+            service.dependency('name' => dependency['name'],
+                                'grouping' => dependency['grouping'],
+                                'restart_on' => dependency['restart_on'],
+                                'type' => dependency['type']) do |dep|
+              dependency['fmris'].each do |service_fmri|
+                dep.service_fmri('value' => service_fmri)
+              end
+            end
+          end
+  
+          service.method_context(exec_context) do |context|
+            if user != 'root'
+              context.method_credential(credentials)
+            end
+  
+            if self.environment
+              context.method_environment do |env|
+                self.environment.each_pair do |var, value|
+                  env.envvar('name' => var, 'value' => value)
                 end
-              }
-            end
-
-            builder.method_context_(exec_context) {
-              if user != 'root'
-                builder.method_credential_(credentials)
-              end
-
-              if self.environment
-                builder.method_environment_ {
-                  self.environment.each_pair do |var, value|
-                    builder.envvar_('name' => var, 'value' => value)
-                  end
-                }
-              end
-            }
-
-            self.commands.each_pair do |type, command|
-              if command
-                builder.exec_method_('type' => 'method', 'name' => type, 'exec' => command, 'timeout_seconds' => self.timeout[type])
               end
             end
-
-            builder.property_group_('name' => 'general', 'type' => 'framework') {
-              builder.propval_('name' => 'action_authorization', 'type' => 'astring', 'value' => "solaris.smf.manage.#{name}")
-              builder.propval_('name' => 'value_authorization', 'type' => 'astring', 'value' => "solaris.smf.value.#{name}")
-            }
-
-            if sets_duration? || ignores_faults?
-              builder.property_group_('name' => 'startd', 'type' => 'framework') {
-                builder.propval_('name' => 'duration', 'type' => 'astring', 'value' => duration) if sets_duration?
-                builder.propval_('name' => 'ignore_error', 'type' => 'astring', 'value' => ignore.join(',')) if ignores_faults?
-              }
+          end
+  
+          self.commands.each_pair do |type, command|
+            if command
+              service.exec_method('type' => 'method', 'name' => type, 'exec' => command, 'timeout_seconds' => self.timeout[type])
             end
-
-            property_groups.each_pair do |name, properties|
-              builder.property_group_('name' => name, 'type' => properties.delete('type') { |type| 'application' }) {
-                properties.each_pair do |key, value|
-                  builder.propval_('name' => key, 'value' => value, 'type' => check_type(value))
-                end
-              }
+          end
+  
+          service.property_group('name' => 'general', 'type' => 'framework') do |group|
+            group.propval('name' => 'action_authorization', 'type' => 'astring', 'value' => "solaris.smf.manage.#{name}")
+            group.propval('name' => 'value_authorization', 'type' => 'astring', 'value' => "solaris.smf.value.#{name}")
+          end
+  
+          if sets_duration? || ignores_faults?
+            service.property_group('name' => 'startd', 'type' => 'framework') do |group|
+              group.propval('name' => 'duration', 'type' => 'astring', 'value' => duration) if sets_duration?
+              group.propval('name' => 'ignore_error', 'type' => 'astring', 'value' => ignore.join(',')) if ignores_faults?
             end
-
-            builder.stability_('value' => stability)
-
-            builder.template_ {
-              builder.common_name_ {
-                builder.loctext_('xml:lang' => locale) {
-                  builder.text name
-                }
-              }
-            }
-          }
-        }
+          end
+  
+          property_groups.each_pair do |name, properties|
+            service.property_group('name' => name, 'type' => properties.delete('type') { |type| 'application' }) do |group|
+              properties.each_pair do |key, value|
+                group.propval('name' => key, 'value' => value, 'type' => check_type(value))
+              end
+            end
+          end
+  
+          service.stability('value' => stability)
+  
+          service.template do |template|
+            template.common_name do |common_name|
+              common_name.loctext(name, 'xml:lang' => locale)
+            end
+          end
+        end
       end
-      xml_builder.to_xml
+
+      xml_builder.target!
     end
 
     def credentials
