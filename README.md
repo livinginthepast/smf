@@ -197,7 +197,8 @@ Valid options for type:
 * service - expects dependency FMRIs to be other services ie: svc:/type/of/service:instance
 * path - expects FMRIs to be paths, ie file://localhost/etc/redis/redis.conf
 
-Note: the provider currently does not do any validation of these values.
+Note: the provider currently does not do any validation of these values. Also, type:path has not been extensively
+tested. Use this at your own risk, or improve the provider's compatibility with type:path and submit a pull request!
 
 ### Duration
 
