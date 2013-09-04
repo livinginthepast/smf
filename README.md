@@ -14,6 +14,9 @@ The SMF cookbook contains providers for creating or modifying a service within t
 
 Any operating system that uses SMF, ie Solaris, SmartOS, OpenIndiana etc.
 
+The `smf` provider depends on the `builder` gem, which can be installed
+via the `smf::default` recipe.
+
 Requires the RBAC cookbook, which can be found at <http://community.opscode.com/cookbooks/rbac>.
 
 Processes can be run inside a project wrapper. In this case, look to the Resource Control cookbook,
@@ -23,7 +26,12 @@ does not create or manage the project.
 
 ## Basic Usage
 
+Note that we run the `smf::default` recipe before using LWRPs from this
+cookbook.
+
 ```ruby
+include_recipe "smf"
+
 smf "my-service" do
   user "non-root-user"
   start_command "my-service start"
