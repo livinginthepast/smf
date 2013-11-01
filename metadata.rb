@@ -1,5 +1,7 @@
 name             'COOKBOOK_NAME'
+maintainer       'Nordstrom, Inc.'
+maintainer_email 'CHANGE_ME_TO_SOMETHING_APPROPRIATE@nordstrom.com'
 license          'All rights reserved'
 description      'Installs/Configures COOKBOOK_NAME'
-long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
+long_description 'Longer version of description: Installs/Configures COOKBOOK_NAME'
 version          '0.0.0'
