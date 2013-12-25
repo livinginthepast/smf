@@ -106,6 +106,7 @@ def checksum
       self.fmri,
       self.stability,
       self.environment_as_string,
+      self.property_groups_as_string,
       "0"
   ]
   @checksum ||= Digest::MD5.hexdigest(attributes.join(':'))
@@ -118,6 +119,11 @@ end
 def environment_as_string
   return nil if self.environment.nil?
   self.environment.inject('') { |memo, k,v| memo << [k,v].join('|')}
+end
+
+def property_groups_as_string
+  return nil if self.property_groups.empty?
+  self.property_groups.inject('') { |memo, k,v| memo << [k,v].join('|')}
 end
 
 def smf_exists?
