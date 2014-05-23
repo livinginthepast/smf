@@ -4,4 +4,3 @@
 #  cookbook runs.
 
 chef_gem 'builder'
-require 'builder'
