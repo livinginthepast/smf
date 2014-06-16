@@ -10,7 +10,7 @@ module SMFManifest
     # allow delegation
     extend Forwardable
 
-    attr_reader :resource
+    attr_reader :resource, :node
 
     # delegate methods to :resource
     def_delegators :resource, :name, :dependencies, :duration, :environment, :group, :ignore,
@@ -19,8 +19,9 @@ module SMFManifest
 
     public
 
-    def initialize(smf_resource)
+    def initialize(smf_resource, node)
       @resource = smf_resource
+      @node = node
     end
 
     def to_xml
@@ -52,12 +53,21 @@ module SMFManifest
     end
 
     def default_dependencies
-      [
-          {'name' => 'milestone', 'value' => '/milestone/sysconfig'},
-          {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
-          {'name' => 'name-services', 'value' => '/milestone/name-services'},
-          {'name' => 'network', 'value' => '/milestone/network'}
-      ]
+      if node.platform == 'solaris2' && node.platform_version == '5.10'
+        [
+            {'name' => 'milestone', 'value' => '/milestone/config'},
+            {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
+            {'name' => 'name-services', 'value' => '/milestone/name-services'},
+            {'name' => 'network', 'value' => '/milestone/network'}
+        ]
+      else
+        [
+            {'name' => 'milestone', 'value' => '/milestone/sysconfig'},
+            {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
+            {'name' => 'name-services', 'value' => '/milestone/name-services'},
+            {'name' => 'network', 'value' => '/milestone/network'}
+        ]
+      end
     end
 
     private
@@ -78,7 +88,7 @@ module SMFManifest
               end
             end
           end
-  
+
           self.dependencies.each do |dependency|
             service.dependency('name' => dependency['name'],
                                 'grouping' => dependency['grouping'],
@@ -89,12 +99,12 @@ module SMFManifest
               end
             end
           end
-  
+
           service.method_context(exec_context) do |context|
             if user != 'root'
               context.method_credential(credentials)
             end
-  
+
             if self.environment
               context.method_environment do |env|
                 self.environment.each_pair do |var, value|
@@ -103,25 +113,25 @@ module SMFManifest
               end
             end
           end
-  
+
           self.commands.each_pair do |type, command|
             if command
               service.exec_method('type' => 'method', 'name' => type, 'exec' => command, 'timeout_seconds' => self.timeout[type])
             end
           end
-  
+
           service.property_group('name' => 'general', 'type' => 'framework') do |group|
             group.propval('name' => 'action_authorization', 'type' => 'astring', 'value' => "solaris.smf.manage.#{name}")
             group.propval('name' => 'value_authorization', 'type' => 'astring', 'value' => "solaris.smf.value.#{name}")
           end
-  
+
           if sets_duration? || ignores_faults?
             service.property_group('name' => 'startd', 'type' => 'framework') do |group|
               group.propval('name' => 'duration', 'type' => 'astring', 'value' => duration) if sets_duration?
               group.propval('name' => 'ignore_error', 'type' => 'astring', 'value' => ignore.join(',')) if ignores_faults?
             end
           end
-  
+
           property_groups.each_pair do |name, properties|
             service.property_group('name' => name, 'type' => properties.delete('type') { |type| 'application' }) do |group|
               properties.each_pair do |key, value|
@@ -129,9 +139,9 @@ module SMFManifest
               end
             end
           end
-  
+
           service.stability('value' => stability)
-  
+
           service.template do |template|
             template.common_name do |common_name|
               common_name.loctext(name, 'xml:lang' => locale)

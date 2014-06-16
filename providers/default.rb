@@ -88,7 +88,7 @@ def write_manifest
 
   Chef::Log.debug "Writing SMF manifest for #{new_resource.name}"
   ::File.open(new_resource.xml_file, 'w') do |file|
-    file.puts SMFManifest::XMLBuilder.new(new_resource).to_xml
+    file.puts SMFManifest::XMLBuilder.new(new_resource, node).to_xml
   end
 end
 

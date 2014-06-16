@@ -168,6 +168,9 @@ By default, services created by the SMF LWRP depend on the following other servi
 * svc:/milestone/name-services
 * svc:/milestone/network
 
+On Solaris11, `svc:/milestone/sysconfig` is replaced with
+`svc:/milestone/config`.
+
 These are configured with the attribute `include_default_dependencies`,
 which defaults to `true`.
 
@@ -175,9 +178,7 @@ Other dependencies can be specified with the `dependencies` attribute,
 which takes an array of hashes as follows:
 
 ```ruby
-smf 'redis' do
- 
-end
+smf 'redis'
 
 smf 'redis-6999' do
   start_command "..."
