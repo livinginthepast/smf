@@ -1,0 +1,18 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_solo
+
+platforms:
+  - name: oracle-solaris-11
+    driver:
+      box: oracle-solaris-11
+      box_url: https://vagrantcloud.com/ruby-concurrency/oracle-solaris-11/version/1/provider/virtualbox.box
+
+suites:
+  - name: install
+    run_list:
+      - recipe[test_smf::smf_install]
+    attributes:
