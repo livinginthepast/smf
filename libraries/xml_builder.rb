@@ -53,7 +53,7 @@ module SMFManifest
     end
 
     def default_dependencies
-      if node.platform == 'solaris2' && node.platform_version == '5.10'
+      if node.platform == 'solaris2' && node.platform_version == '5.11'
         [
             {'name' => 'milestone', 'value' => '/milestone/config'},
             {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
