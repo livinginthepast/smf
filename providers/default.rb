@@ -5,7 +5,9 @@ require 'builder'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
-  find_fmri
+  if ! new_resource.fmri
+    find_fmri
+  end
 
   @current_resource = Chef::Resource::Smf.new(new_resource.name)
   @current_resource.fmri(new_resource.fmri)
