@@ -63,6 +63,10 @@ Ownership:
 * `user` - User to run service commands as
 * `group` - Group to run service commands as
 
+RBAC
+* `authorization` — What management and value authorizations should be
+  created for this service. Defaults to the service name.
+
 Dependency management:
 * `include_default_dependencies` - Service should depend on file system
   and network services. Defaults to `true`. See [Dependencies](#dependencies)
@@ -154,6 +158,28 @@ All things considered, one should think carefully about the need for an init scr
 well-behaved applications with simple configuration, an init script is overkill. Applications with endless command-line 
 options or that need a real login shell (for instance ruby applications that use RVM) an init script may make life
 easier.
+
+### Role Based Authorization
+
+By default the SMF definition creates authorizations based on the
+service name. The service user is then granted these authorizations. If
+the service is named `asplosions`, then `solaris.smf.manage.asplosions`
+and `solaris.smf.value.asplosions` will be created.
+
+The authorization can be changed by manually setting `authorization` on
+the smf block:
+
+```ruby
+smf 'asplosions' do
+  user 'monkeyking'
+  start_command 'asplode'
+  authorization 'booms'
+end
+```
+
+This can be helpful if there are many services configured on a single
+host, as multiple services can be collapsed into the same
+authorizations. For instance: https://illumos.org/issues/4968 
 
 ### Dependencies
 

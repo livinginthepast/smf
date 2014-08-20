@@ -10,6 +10,8 @@ attribute :user, :kind_of => [String, NilClass], :default => nil
 attribute :group, :kind_of => [String, NilClass], :default => nil
 attribute :project, :kind_of => [String, NilClass], :default => nil
 
+attribute :authorization, :kind_of => [String, NilClass], :default => nil
+
 attribute :start_command, :kind_of => [String, NilClass], :default => nil
 attribute :start_timeout, :kind_of => Integer, :default => 5
 attribute :stop_command, :kind_of => String, :default => ":kill"
@@ -79,6 +81,10 @@ def load
   @smf_exists = shell_out("svcs #{self.fmri}").exitstatus == 0
   Chef::Log.debug("Loaded checksum for SMF #{self.name}: #{@checksum}")
   Chef::Log.debug("SMF service already exists for #{self.fmri}? #{@smf_exists.inspect}")
+end
+
+def authorization_name
+  self.authorization || self.name
 end
 
 def checksum

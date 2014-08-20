@@ -13,7 +13,7 @@ module SMFManifest
     attr_reader :resource, :node
 
     # delegate methods to :resource
-    def_delegators :resource, :name, :dependencies, :duration, :environment, :group, :ignore,
+    def_delegators :resource, :name, :authorization_name, :dependencies, :duration, :environment, :group, :ignore,
       :include_default_dependencies, :locale, :manifest_type,  :project, :property_groups,
       :service_path, :stability, :working_directory
 
@@ -121,8 +121,8 @@ module SMFManifest
           end
 
           service.property_group('name' => 'general', 'type' => 'framework') do |group|
-            group.propval('name' => 'action_authorization', 'type' => 'astring', 'value' => "solaris.smf.manage.#{name}")
-            group.propval('name' => 'value_authorization', 'type' => 'astring', 'value' => "solaris.smf.value.#{name}")
+            group.propval('name' => 'action_authorization', 'type' => 'astring', 'value' => "solaris.smf.manage.#{authorization_name}")
+            group.propval('name' => 'value_authorization', 'type' => 'astring', 'value' => "solaris.smf.value.#{authorization_name}")
           end
 
           if sets_duration? || ignores_faults?

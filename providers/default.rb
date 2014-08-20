@@ -32,14 +32,14 @@ action :add_rbac do
   service new_resource.name
 
   manage = execute "add SMF authorization to allow RBAC for #{new_resource.name}" do
-    command "svccfg -s #{new_resource.name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{new_resource.name}'"
-    not_if "svcprop -p general/action_authorization #{new_resource.name}"
+    command "svccfg -s #{new_resource.name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{new_resource.authorization_name}'"
+    not_if "[ $(svcprop -p general/action_authorization #{new_resource.name}) == 'solaris.smf.manage.#{new_resource.authorization_name}' ]"
     notifies :reload, "service[#{new_resource.name}]"
   end
 
   value = execute "add SMF value to allow RBAC for #{new_resource.name}" do
-    command "svccfg -s #{new_resource.name} setprop general/value_authorization=astring: 'solaris.smf.value.#{new_resource.name}'"
-    not_if "svcprop -p general/value_authorization #{new_resource.name}"
+    command "svccfg -s #{new_resource.name} setprop general/value_authorization=astring: 'solaris.smf.value.#{new_resource.authorization_name}'"
+    not_if "[ $(svcprop -p general/value_authorization #{new_resource.name}) == 'solaris.smf.value.#{new_resource.authorization_name}' ]"
     notifies :reload, "service[#{new_resource.name}]"
   end
 
@@ -102,7 +102,7 @@ def delete_manifest
 end
 
 def create_rbac_definitions
-  rbac new_resource.name do
+  rbac new_resource.authorization_name do
     action :create
   end
 end
@@ -112,7 +112,7 @@ def add_rbac_permissions
 
   rbac_auth "Add RBAC for #{new_resource.name} to #{user}" do
     user user
-    auth new_resource.name
+    auth new_resource.authorization_name
     not_if { user == "root" }
   end
 end
