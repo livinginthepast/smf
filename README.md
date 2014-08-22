@@ -334,7 +334,7 @@ See: <http://www.cuddletech.com/blog/pivot/entry.php?id=182>
 
 ## Working Examples
 
-Please see the (examples)[https://github.com/livinginthepast/smf/blob/master/EXAMPLES.md] page for
+Please see the [examples](https://github.com/livinginthepast/smf/blob/master/EXAMPLES.md) page for
 example usages.
 
 
