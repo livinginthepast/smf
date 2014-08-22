@@ -104,6 +104,7 @@ def checksum
       self.refresh_timeout,
       self.working_directory,
       self.locale,
+      self.authorization,
       self.manifest_type,
       self.service_path,
       self.duration,
