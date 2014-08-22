@@ -17,10 +17,10 @@ Any operating system that uses SMF, ie Solaris, SmartOS, OpenIndiana etc.
 The `smf` provider depends on the `builder` gem, which can be installed
 via the `smf::default` recipe.
 
-Requires the RBAC cookbook, which can be found at <http://community.opscode.com/cookbooks/rbac>.
+Requires the RBAC cookbook, which can be found at <https://supermarket.getchef.com/cookbooks/rbac>.
 
 Processes can be run inside a project wrapper. In this case, look to the Resource Control cookbook,
-which can be found at <http://community.opscode.com/cookbooks/resource-control>. Note that the SMF LWRP
+which can be found at <https://supermarket.getchef.com/cookbooks/resource-control>. Note that the SMF LWRP
 does not create or manage the project.
 
 
