@@ -338,8 +338,11 @@ Please see the (examples)[https://github.com/livinginthepast/smf/blob/master/EXA
 example usages.
 
 
+## Cookbook upgrades, possible side effects
+
+Changes to this cookbook may change the way that its internal checksums are generated for a service.
+If you `notify :restart` any service from within the `smf` block or include a `refresh_command`, please
+be aware that upgrading this cookbook may trigger a refresh or a registered notification on the first
+subsequent chef run.
 
 
-## TODO
-
-* tests... this was built before I knew about chefspec
