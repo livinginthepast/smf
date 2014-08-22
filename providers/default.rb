@@ -113,7 +113,7 @@ def add_rbac_permissions
   rbac_auth "Add RBAC for #{new_resource.name} to #{user}" do
     user user
     auth new_resource.authorization_name
-    not_if { user == "root" }
+    not_if { user == 'root' }
   end
 end
 

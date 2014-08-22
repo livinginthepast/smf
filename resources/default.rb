@@ -14,7 +14,7 @@ attribute :authorization, :kind_of => [String, NilClass], :default => nil
 
 attribute :start_command, :kind_of => [String, NilClass], :default => nil
 attribute :start_timeout, :kind_of => Integer, :default => 5
-attribute :stop_command, :kind_of => String, :default => ":kill"
+attribute :stop_command, :kind_of => String, :default => ':kill'
 attribute :stop_timeout, :kind_of => Integer, :default => 5
 attribute :restart_command, :kind_of => [String, NilClass], :default => nil
 attribute :restart_timeout, :kind_of => Integer, :default => 5
@@ -26,17 +26,17 @@ attribute :dependencies, :kind_of => [Array], :default => []
 
 attribute :working_directory, :kind_of => [String, NilClass], :default => nil
 attribute :environment, :kind_of => [Hash, NilClass], :default => nil
-attribute :locale, :kind_of => String, :default => "C"
+attribute :locale, :kind_of => String, :default => 'C'
 
-attribute :manifest_type, :kind_of => String, :default => "application"
-attribute :service_path, :kind_of => String, :default => "/var/svc/manifest"
+attribute :manifest_type, :kind_of => String, :default => 'application'
+attribute :service_path, :kind_of => String, :default => '/var/svc/manifest'
 
-attribute :duration, :kind_of => String, :default => "contract", :regex => "(contract|wait|transient|child)"
+attribute :duration, :kind_of => String, :default => 'contract', :regex => '(contract|wait|transient|child)'
 attribute :ignore, :kind_of => [Array, NilClass], :default => nil
 attribute :fmri, :kind_of => String, :default => nil
 
 attribute :stability, :kind_of => String, :equal_to => %(Standard Stable Evolving Unstable External Obsolete),
-  :default => "Evolving"
+  :default => 'Evolving'
 
 attribute :property_groups, :kind_of => Hash, :default => {}
 
@@ -113,7 +113,7 @@ def checksum
       self.stability,
       self.environment_as_string,
       self.property_groups_as_string,
-      "0"
+      '0'
   ]
   @checksum ||= Digest::MD5.hexdigest(attributes.join(':'))
 end
