@@ -23,7 +23,7 @@ action :install do
   add_rbac_permissions
 
   new_resource.updated_by_last_action(smf_changed?)
-  new_resource.save_checksum
+  new_resource.save_checksum if smf_changed?
 end
 
 action :add_rbac do
