@@ -45,6 +45,7 @@ smf "my-service" do
   locale "C"
   manifest_type "application"
   service_path  "/var/svc/manifest"
+  notify :restart, 'service[my-service]'
 end
 
 service "my-service" do
@@ -82,7 +83,10 @@ Process management:
 * `stop_timeout`
 * `restart_command` - defaults to `stop_command`, then `start_command`
 * `restart_timeout`
-* `duration` - Can be either `contract`, `wait`, `transient` or 
+* `refresh_command` - by default SMF treats this as `true`. This will be called when the SMF definition changes or
+  when a `notify :reload, 'service[thing]'` is called.
+* `refresh_timeout`
+* `duration` - Can be either `contract`, `wait`, `transient` or
   `child`, but defaults to `contract`. See the [Duration](#duration) section below.
 * `environment` - Hash - Environment variables to set while running commands
 * `ignore` - Array - Faults to ignore in subprocesses. For example, 
