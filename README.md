@@ -89,6 +89,8 @@ Process management:
   if core dumps in children are handled by a master process and you 
   don't want SMF thinking the service is exploding, you can ignore 
   ["core", "signal"].
+* `privileges` — Array — An array of privileges to be allowed for started processes.
+  Defaults to ['basic', 'net_privaddr']
 * `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
 * `working_directory` - PWD that SMF should cd to in order to run commands
 * `locale` - Character encoding to use (default "C")
@@ -259,6 +261,22 @@ A fourth option is `child`.
 Sometimes you have a case where your service behaves poorly. The Ruby server Unicorn, for example, has a master 
 process that likes to kill its children. This causes core dumps that SMF will interpret to be a failing service.
 Instead you can `ignore ["core", "signal"]` and SMF will stop caring about core dumps.
+
+### Privileges
+
+Some system calls require privileges generally only granted to superusers or particular roles. In Solaris, an
+SMF definition can also set specific privileges for contracted processes.
+
+By default the SMF provider will grant 'basic' and 'net_privaddr' permissions, but this can be set as follows:
+
+```ruby
+smf 'elasticsearch' do
+  start_command 'elasticsearch'
+  privileges ['basic', 'proc_lock_memory']
+end
+```
+
+See the (privileges man page)[https://www.illumos.org/man/5/privileges] for more information.
 
 ### Property Groups
 

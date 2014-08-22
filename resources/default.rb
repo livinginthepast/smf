@@ -24,6 +24,7 @@ attribute :refresh_timeout, :kind_of => Integer, :default => 5
 attribute :include_default_dependencies, :kind_of => [TrueClass, FalseClass], :default => true
 attribute :dependencies, :kind_of => [Array], :default => []
 
+attribute :privileges, :kind_of => [Array], :default => %w(basic net_privaddr)
 attribute :working_directory, :kind_of => [String, NilClass], :default => nil
 attribute :environment, :kind_of => [Hash, NilClass], :default => nil
 attribute :locale, :kind_of => String, :default => 'C'
@@ -112,6 +113,7 @@ def checksum
       self.fmri,
       self.stability,
       self.environment_as_string,
+      self.privilege_list,
       self.property_groups_as_string,
       '0'
   ]
@@ -125,6 +127,10 @@ end
 def environment_as_string
   return nil if self.environment.nil?
   self.environment.inject('') { |memo, k,v| memo << [k,v].join('|')}
+end
+
+def privilege_list
+  self.privileges.join(',')
 end
 
 def property_groups_as_string

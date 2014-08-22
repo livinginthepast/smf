@@ -154,7 +154,7 @@ module SMFManifest
     end
 
     def credentials
-      creds = {'user' => user, 'privileges' => 'basic,net_privaddr'}
+      creds = {'user' => user, 'privileges' => resource.privilege_list}
       creds.merge!('group' => group) unless group.nil?
       creds
     end
