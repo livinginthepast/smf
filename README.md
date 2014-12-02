@@ -133,6 +133,26 @@ Remove an SMF definition. This stops the service if it is running.
 This uses the `rbac` cookbook to define permissions that can then be applied to a user. This can be useful when local
 users should manage services that are added via packages.
 
+### :setprop
+
+This action allows setting properties for services.  In Solaris 11 many
+attributes that used to specified in files need to be specified via service
+properties. An example is the network/dns/client service used to specify the
+information that used to be in resolv.conf. 
+The property_group attribute is used to specify the properties to be set.
+
+### :delprop
+
+This action will remove a property from a service. The property_group attribute
+is used to specify the properties to be deleted.
+
+### :delpropvalue
+
+This action will remove a property value from a service. The property will
+remain defined.  Possibly with a null value. The property_group attribute
+is used to specify the properies and values that will be deleted.  The property
+value specified is treated as a glob.
+
 ```ruby
 smf "nginx" do
   action :add_rbac
