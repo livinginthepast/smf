@@ -5,9 +5,7 @@ require 'builder'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
-  if ! new_resource.fmri
-    find_fmri
-  end
+  find_fmri unless new_resource.frmi
 
   @current_resource = Chef::Resource::Smf.new(new_resource.name)
   @current_resource.fmri(new_resource.fmri)
@@ -65,6 +63,28 @@ action :delete do
   end
 end
 
+action :setprop do
+  Chef::Application.fatal!("#{@current_resource.name} does not exit", 8) unless @current_resource.smf_exists?
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.set(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
+end
+
+action :delpropvalue do
+  properties = SMFProperties::Changes.new(new_resource.fmri, new_resource.property_groups)
+  properties.delete_value ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
+end
+
+action :delprop do
+  properties = SMFProperties::Changes.new(new_resource.fmri, new_resource.property_groups)
+  properties.delete ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
+end
+
+action :refresh do
+  properties = SMFProperties::Changes.new(new_resource.fmri, new_resource.property_groups)
+  properties.refresh ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
+end
+
+
 private
 
 def smf_changed?
@@ -72,7 +92,7 @@ def smf_changed?
 end
 
 def find_fmri
-  fmri_check = shell_out(%{svcs -H -o FMRI #{new_resource.name}})
+  fmri_check = shell_out(%(svcs -H -o FMRI #{new_resource.name}))
   if fmri_check.exitstatus == 0
     new_resource.fmri fmri_check.stdout.chomp.split(':')[1]
   else
@@ -95,7 +115,7 @@ def write_manifest
 end
 
 def delete_manifest
-  return unless ::File.exists?(new_resource.xml_file)
+  return unless ::File.exist?(new_resource.xml_file)
 
   Chef::Log.debug "Removing SMF manifest for #{new_resource.name}"
   ::File.delete(new_resource.xml_file)

@@ -1,18 +1,27 @@
 ---
 driver:
   name: vagrant
+driver_config:
+  http_proxy: http://webproxysea.nordstrom.net:8181
+  https_proxy: http://webproxysea.nordstrom.net:8181
+  require_chef_omnibus: false
 
 provisioner:
   name: chef_solo
 
 platforms:
-  - name: oracle-solaris-11
+  - name: nordsol10
     driver:
-      box: oracle-solaris-11
-      box_url: https://vagrantcloud.com/ruby-concurrency/oracle-solaris-11/version/1/provider/virtualbox.box
+      box: nordsol10
+      box_url: http://y0319p297/downloads/vagrant-solaris10.box
+  - name: nordsol11
+    driver:
+      box: nordsol11
+      box_url: http://y0319p297/downloads/vagrant-solaris11.box
 
 suites:
   - name: install
     run_list:
+      - recipe[smf::default]
       - recipe[test_smf::smf_install]
     attributes:
