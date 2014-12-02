@@ -37,7 +37,9 @@ module SMFProperties
       @groups.each_pair do |group, properties|
         properties.each_pair do |property, values|
           make_value_array(values).each do |value|
-            unless matchprop(group, property, value)
+            # TODO the value specified for delpropvalue is a glob pattern
+            # The matching needs to change.  ::FILE has a glob match a string method
+            if matchprop(group, property, value)
               delprop_value(fmri, group, property, value)
               changed = true
             end
@@ -53,8 +55,8 @@ module SMFProperties
       @existing_xml = read_xml(fmri)
       @groups.each_pair do |group, properties|
         properties.each_pair do |property, values|
-          unless prop_type(group, property)
-            delprop(fmri, group, property, values)
+          if prop_type(group, property)
+            delprop(fmri, group, property)
             changed = true
           end
         end
@@ -87,11 +89,11 @@ module SMFProperties
     end
 
     def read_xml(fmri)
-      REXML::Document.new(shell_out!("/usr/sbin/svccfg export #{fmri} -a").stdout)
+      REXML::Document.new(shell_out!("/usr/sbin/svccfg export #{fmri}").stdout)
     end
 
     def setprop(fmri, group, property, values)
-      prop_to_set = "#{fmri} setprop #{group}/#{property} #{values}"
+      prop_to_set = "#{fmri} setprop #{group}/#{property} = '#{values}'"
       shell_out!("/usr/sbin/svccfg -s #{prop_to_set}")
       Chef::Log.info("Set svc property: #{fmri} #{prop_to_set}")
     end
@@ -104,7 +106,7 @@ module SMFProperties
 
     def delprop(fmri, group, property)
       prop_to_del = "#{fmri} delprop #{group}/#{property}"
-      shell_out!("/usr/sbin/svccfg -s #{prop_to_set}")
+      shell_out!("/usr/sbin/svccfg -s #{prop_to_del}")
       Chef::Log.info("Delete svc property: #{fmri} #{prop_to_del}")
     end
 
@@ -120,7 +122,7 @@ module SMFProperties
       @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']") do |element|
         unless element.attributes['value'] == value_array[value_index]
           match = false
-          i += 1
+          value_index += 1
         end
         match = false unless value_index == array.length
         break unless match

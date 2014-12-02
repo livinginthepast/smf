@@ -17,17 +17,31 @@ smf 'create_thing2' do
   stop_command 'true'
   duration 'transient'
   property_groups ({
-    property1: true,
-    property3: '("complex value" "simple" "basic")'
+    testgroup: {
+      property1: 'true',
+      property3: '("complex value" "simple" "basic")'
+    }
   })
 end
 
 smf 'modify_thing2' do
+  action :setprop
   name 'thing2'
   fmri 'thing2'
-  action [:setprop]
   property_groups ({
-    property1: true,
-    property3: '("complex modified value" "simple" "basic")'
+    testgroup: {
+      property1: 'true',
+      property3: '("complex modified value" "simple" "basic")'
+    }
+  })
+end
+
+smf 'modify_name-service-cache' do
+  action :setprop
+  name 'name-service-cache'
+  property_groups ({
+    config: {
+      'per_user_nscd_time_to_live' => 240
+    }
   })
 end

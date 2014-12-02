@@ -2,8 +2,8 @@
 driver:
   name: vagrant
 driver_config:
-  http_proxy: http://webproxysea.nordstrom.net:8181
-  https_proxy: http://webproxysea.nordstrom.net:8181
+  # http_proxy: http://webproxysea.nordstrom.net:8181
+  # https_proxy: http://webproxysea.nordstrom.net:8181
   require_chef_omnibus: false
 
 provisioner:

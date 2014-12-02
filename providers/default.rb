@@ -1,11 +1,11 @@
 
 require 'chef/mixin/shell_out'
 require 'fileutils'
-require 'builder'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
-  find_fmri unless new_resource.frmi
+  require 'builder'
+  find_fmri unless new_resource.fmri
 
   @current_resource = Chef::Resource::Smf.new(new_resource.name)
   @current_resource.fmri(new_resource.fmri)
