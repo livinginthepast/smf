@@ -1,7 +1,6 @@
 
 require 'chef/mixin/shell_out'
 require 'fileutils'
-require 'builder'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
