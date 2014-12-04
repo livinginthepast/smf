@@ -15,10 +15,10 @@ context 'Service properties' do
     its(:stdout) { is_expected.to match(/property1.*true/) }
     its(:stdout) { is_expected.to match(/value_node.*complex modified value/) }
     its(:stdout) { is_expected.to match(/value_node.*basic/) }
- end
+  end
   describe command('svccfg export modify_name-service-cache') do
     its(:stdout) { is_expected.to match(/per_user_nscd_time_to_live.*240/) }
- end
+  end
 end
 
 # service with deleted property value

@@ -19,7 +19,10 @@ smf 'create_thing2' do
   property_groups ({
     testgroup: {
       property1: 'true',
-      property3: '("complex value" "simple" "basic")'
+      property2: 'deleteme',
+      property3: '("complex value" "simple" "basic")',
+      property4: 'deletethisvalue',
+      property5: 'deletethisvalueglob'
     }
   })
 end
@@ -42,6 +45,36 @@ smf 'modify_name-service-cache' do
   property_groups ({
     config: {
       'per_user_nscd_time_to_live' => 240
+    }
+  })
+end
+
+smf 'delete_property' do
+  action :delprop
+  name 'thing2'
+  property_groups ({
+    testgroup: {
+      'property2' => 240
+    }
+  })
+end
+
+smf 'delete_property_value' do
+  action :delpropvalue
+  name 'thing2'
+  property_groups ({
+    testgroup: {
+      'property4' => 'deletethisvalue'
+    }
+  })
+end
+
+smf 'delete_property_value_usingglob' do
+  action :delpropvalue
+  name 'thing2'
+  property_groups ({
+    testgroup: {
+      'property5' => '*glob'
     }
   })
 end

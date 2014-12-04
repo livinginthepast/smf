@@ -64,26 +64,20 @@ action :delete do
 end
 
 action :setprop do
-  Chef::Application.fatal!("#{@current_resource.name} does not exit", 8) unless @current_resource.smf_exists?
+  Chef::Application.fatal!("#{@current_resource.name} does not exist", 8) unless @current_resource.smf_exists?
   properties = SMFProperties::Changes.new(new_resource.property_groups)
-  properties.set(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
+  properties.set(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
 end
 
 action :delpropvalue do
-  properties = SMFProperties::Changes.new(new_resource.fmri, new_resource.property_groups)
-  properties.delete_value ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.delete_values(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
 end
 
 action :delprop do
-  properties = SMFProperties::Changes.new(new_resource.fmri, new_resource.property_groups)
-  properties.delete ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.delete(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
 end
-
-action :refresh do
-  properties = SMFProperties::Changes.new(new_resource.fmri, new_resource.property_groups)
-  properties.refresh ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(true)
-end
-
 
 private
 

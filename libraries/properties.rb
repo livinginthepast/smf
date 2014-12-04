@@ -39,7 +39,7 @@ module SMFProperties
           make_value_array(values).each do |value|
             # TODO the value specified for delpropvalue is a glob pattern
             # The matching needs to change.  ::FILE has a glob match a string method
-            if matchprop(group, property, value)
+            if matchprop_glob(group, property, value)
               delprop_value(fmri, group, property, value)
               changed = true
             end
@@ -47,6 +47,7 @@ module SMFProperties
         end
       end
       refresh(fmri) if changed
+      changed
     end
 
     def delete(fmri)
@@ -55,19 +56,21 @@ module SMFProperties
       @existing_xml = read_xml(fmri)
       @groups.each_pair do |group, properties|
         properties.each_pair do |property, values|
-          if prop_type(group, property)
+          # TODO prop exist is not a good test.
+          # Need to deal with propval and prop test
+          if prop_exist?(group, property)
             delprop(fmri, group, property)
             changed = true
           end
         end
       end
       refresh(fmri) if changed
+      changed
     end
 
     private
 
     def matchprop(group, property, values)
-      # Using @existing_xml
       # Decide if we are looking for a propval or a property with a list of propvals.
       # A property with a single values is specified as a propval node.
       # If a property has a array of values the format is different and a property node is created.
@@ -75,17 +78,36 @@ module SMFProperties
       if property_value
         return property_value == values
       else
-        property_type = prop_type(group, property)
-        return property_type ? compare_prop_values(group, property, values) : false
+        return prop_exist?(group, property) ? compare_prop_values(group, property, values) : false
       end
     end
 
+    def matchprop_glob(group, property, values)
+      # Decide if we are looking for a propval or a property with a list of propvals.
+      # A property with a single values is specified as a propval node.
+      # If a property has a array of values the format is different and a property node is created.
+      property_value = propval(group, property)
+      if property_value
+        return ::File.fnmatch?(values,property_value)
+      else
+        return prop_exist?(group, property) ? compare_prop_glob(group, property, values) : false
+      end
+    end
+
+    def prop_exist?(group, property)
+      !!prop_type(group, property) 
+    end
+
     def propval(group, property)
-      @existing_xml.elements.each("//property_group[@name='#{group}']//propval[@name='#{property}']") { |element| element.attributes['value'] }
+      value = ""
+      @existing_xml.elements.each("//property_group[@name='#{group}']//propval[@name='#{property}']") { |element| value = element.attributes['value'] }
+      value.empty? ? false : value
     end
 
     def prop_type(group, property)
-      @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']") { |element| element.attributes['type'] }
+      type = ""
+      @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']") { |element| type = element.attributes['type'] }
+      type.empty? ? false : type
     end
 
     def read_xml(fmri)
@@ -116,21 +138,35 @@ module SMFProperties
     end
 
     def compare_prop_values(group, property, values)
-      value_array = make_value_arrary(values)
-      value_index = 0
       match = true
-      @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']") do |element|
+      value_array = make_value_array(values)
+      value_index = 0
+      @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']//value_node") do |element|
         unless element.attributes['value'] == value_array[value_index]
           match = false
-          value_index += 1
         end
-        match = false unless value_index == array.length
+        value_index += 1
         break unless match
       end
+      match = false unless value_index == value_array.length
+      match
+    end
+
+    def compare_prop_glob(group, property, values)
+      value_array = make_value_array(values)
+      match = false
+      @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']//value_node") do |element|
+        value_array.each do |value|
+          match = ::File.fnmatch?(value, element.attributes['value'])
+          break if match
+        end
+        break if match
+      end
+      match
     end
 
     def make_value_array(values)
-      %W(#{values.gsub(/^\(|\)$/, '')})
+      values.gsub(/^\(|\)$/, '').split
     end
   end
 end
