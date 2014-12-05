@@ -37,7 +37,7 @@ attribute :ignore, kind_of: [Array, NilClass], default: nil
 attribute :fmri, kind_of: String, default: nil
 
 attribute :stability, kind_of: String, equal_to: %(Standard Stable Evolving Unstable External Obsolete),
-                      default: 'Evolving'
+  default: 'Evolving'
 
 attribute :property_groups, kind_of: Hash, default: {}
 

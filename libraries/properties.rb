@@ -37,8 +37,6 @@ module SMFProperties
       @groups.each_pair do |group, properties|
         properties.each_pair do |property, values|
           make_value_array(values).each do |value|
-            # TODO the value specified for delpropvalue is a glob pattern
-            # The matching needs to change.  ::FILE has a glob match a string method
             if matchprop_glob(group, property, value)
               delprop_value(fmri, group, property, value)
               changed = true
@@ -55,9 +53,7 @@ module SMFProperties
       @existing_xml = REXML::Document.new
       @existing_xml = read_xml(fmri)
       @groups.each_pair do |group, properties|
-        properties.each_pair do |property, values|
-          # TODO prop exist is not a good test.
-          # Need to deal with propval and prop test
+        properties.each_pair do |property, _values|
           if prop_exist?(group, property)
             delprop(fmri, group, property)
             changed = true
@@ -88,24 +84,24 @@ module SMFProperties
       # If a property has a array of values the format is different and a property node is created.
       property_value = propval(group, property)
       if property_value
-        return ::File.fnmatch?(values,property_value)
+        return ::File.fnmatch?(values, property_value)
       else
         return prop_exist?(group, property) ? compare_prop_glob(group, property, values) : false
       end
     end
 
     def prop_exist?(group, property)
-      !!prop_type(group, property) 
+      prop_type(group, property)
     end
 
     def propval(group, property)
-      value = ""
+      value = ''
       @existing_xml.elements.each("//property_group[@name='#{group}']//propval[@name='#{property}']") { |element| value = element.attributes['value'] }
       value.empty? ? false : value
     end
 
     def prop_type(group, property)
-      type = ""
+      type = ''
       @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']") { |element| type = element.attributes['type'] }
       type.empty? ? false : type
     end

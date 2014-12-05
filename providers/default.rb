@@ -2,8 +2,10 @@
 require 'chef/mixin/shell_out'
 require 'fileutils'
 include Chef::Mixin::ShellOut
+use_inline_resources
 
 def load_current_resource
+  # Require builder is here to bypass timing problem conflicts with the builder gem install.
   require 'builder'
   find_fmri unless new_resource.fmri
 
