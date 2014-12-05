@@ -22,6 +22,7 @@ platforms:
 suites:
   - name: install
     run_list:
+      - recipe[chef_handler_elapsed_time::default]
       - recipe[smf::default]
       - recipe[test_smf::smf_install]
       - recipe[test_smf::smf_prop]
