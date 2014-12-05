@@ -14,8 +14,8 @@ module SMFManifest
 
     # delegate methods to :resource
     def_delegators :resource, :name, :authorization_name, :dependencies, :duration, :environment, :group, :ignore,
-      :include_default_dependencies, :locale, :manifest_type,  :project, :property_groups,
-      :service_path, :stability, :working_directory
+                   :include_default_dependencies, :locale, :manifest_type,  :project, :property_groups,
+                   :service_path, :stability, :working_directory
 
     public
 
@@ -36,36 +36,36 @@ module SMFManifest
 
     def commands
       @commands ||= {
-          'start' => resource.start_command,
-          'stop' => resource.stop_command,
-          'restart' => resource.restart_command,
-          'refresh' => resource.refresh_command
+        'start' => resource.start_command,
+        'stop' => resource.stop_command,
+        'restart' => resource.restart_command,
+        'refresh' => resource.refresh_command
       }
     end
 
     def timeout
       @timeouts ||= {
-          'start' => resource.start_timeout,
-          'stop' => resource.stop_timeout,
-          'restart' => resource.restart_timeout,
-          'refresh' => resource.refresh_timeout
+        'start' => resource.start_timeout,
+        'stop' => resource.stop_timeout,
+        'restart' => resource.restart_timeout,
+        'refresh' => resource.refresh_timeout
       }
     end
 
     def default_dependencies
       if node.platform == 'solaris2' && node.platform_version == '5.11'
         [
-            {'name' => 'milestone', 'value' => '/milestone/config'},
-            {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
-            {'name' => 'name-services', 'value' => '/milestone/name-services'},
-            {'name' => 'network', 'value' => '/milestone/network'}
+          { 'name' => 'milestone', 'value' => '/milestone/config' },
+          { 'name' => 'fs-local', 'value' => '/system/filesystem/local' },
+          { 'name' => 'name-services', 'value' => '/milestone/name-services' },
+          { 'name' => 'network', 'value' => '/milestone/network' }
         ]
       else
         [
-            {'name' => 'milestone', 'value' => '/milestone/sysconfig'},
-            {'name' => 'fs-local', 'value' => '/system/filesystem/local'},
-            {'name' => 'name-services', 'value' => '/milestone/name-services'},
-            {'name' => 'network', 'value' => '/milestone/network'}
+          { 'name' => 'milestone', 'value' => '/milestone/sysconfig' },
+          { 'name' => 'fs-local', 'value' => '/system/filesystem/local' },
+          { 'name' => 'name-services', 'value' => '/milestone/name-services' },
+          { 'name' => 'network', 'value' => '/milestone/network' }
         ]
       end
     end
@@ -73,27 +73,27 @@ module SMFManifest
     private
 
     def xml_output
-      xml_builder = ::Builder::XmlMarkup.new(:indent => 2)
+      xml_builder = ::Builder::XmlMarkup.new(indent: 2)
       xml_builder.instruct!
-      xml_builder.declare! :DOCTYPE, :service_bundle, :SYSTEM, "/usr/share/lib/xml/dtd/service_bundle.dtd.1"
+      xml_builder.declare! :DOCTYPE, :service_bundle, :SYSTEM, '/usr/share/lib/xml/dtd/service_bundle.dtd.1'
       xml_builder.service_bundle('name' => name, 'type' => 'manifest') do |xml|
-        xml.service('name' => service_fmri, 'type' => "service", 'version' => "1") do |service|
+        xml.service('name' => service_fmri, 'type' => 'service', 'version' => '1') do |service|
           service.create_default_instance('enabled' => 'false')
           service.single_instance
 
-          if self.include_default_dependencies
-            self.default_dependencies.each do |dependency|
+          if include_default_dependencies
+            default_dependencies.each do |dependency|
               service.dependency('name' => dependency['name'], 'grouping' => 'require_all', 'restart_on' => 'none', 'type' => 'service') do |dep|
                 dep.service_fmri('value' => "svc:#{dependency['value']}")
               end
             end
           end
 
-          self.dependencies.each do |dependency|
+          dependencies.each do |dependency|
             service.dependency('name' => dependency['name'],
-                                'grouping' => dependency['grouping'],
-                                'restart_on' => dependency['restart_on'],
-                                'type' => dependency['type']) do |dep|
+                               'grouping' => dependency['grouping'],
+                               'restart_on' => dependency['restart_on'],
+                               'type' => dependency['type']) do |dep|
               dependency['fmris'].each do |service_fmri|
                 dep.service_fmri('value' => service_fmri)
               end
@@ -105,18 +105,18 @@ module SMFManifest
               context.method_credential(credentials)
             end
 
-            if self.environment
+            if environment
               context.method_environment do |env|
-                self.environment.each_pair do |var, value|
+                environment.each_pair do |var, value|
                   env.envvar('name' => var, 'value' => value)
                 end
               end
             end
           end
 
-          self.commands.each_pair do |type, command|
+          commands.each_pair do |type, command|
             if command
-              service.exec_method('type' => 'method', 'name' => type, 'exec' => command, 'timeout_seconds' => self.timeout[type])
+              service.exec_method('type' => 'method', 'name' => type, 'exec' => command, 'timeout_seconds' => timeout[type])
             end
           end
 
@@ -133,7 +133,7 @@ module SMFManifest
           end
 
           property_groups.each_pair do |name, properties|
-            service.property_group('name' => name, 'type' => properties.delete('type') { |type| 'application' }) do |group|
+            service.property_group('name' => name, 'type' => properties.delete('type') { |_type| 'application' }) do |group|
               properties.each_pair do |key, value|
                 group.propval('name' => key, 'value' => value, 'type' => check_type(value))
               end
@@ -154,7 +154,7 @@ module SMFManifest
     end
 
     def credentials
-      creds = {'user' => user, 'privileges' => resource.privilege_list}
+      creds = { 'user' => user, 'privileges' => resource.privilege_list }
       creds.merge!('group' => group) unless group.nil?
       creds
     end

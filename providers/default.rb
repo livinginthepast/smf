@@ -4,7 +4,7 @@ require 'fileutils'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
-  if ! new_resource.fmri
+  unless new_resource.fmri
     find_fmri
   end
 
@@ -71,7 +71,7 @@ def smf_changed?
 end
 
 def find_fmri
-  fmri_check = shell_out(%{svcs -H -o FMRI #{new_resource.name}})
+  fmri_check = shell_out(%(svcs -H -o FMRI #{new_resource.name}))
   if fmri_check.exitstatus == 0
     new_resource.fmri fmri_check.stdout.chomp.split(':')[1]
   else
@@ -94,7 +94,7 @@ def write_manifest
 end
 
 def delete_manifest
-  return unless ::File.exists?(new_resource.xml_file)
+  return unless ::File.exist?(new_resource.xml_file)
 
   Chef::Log.debug "Removing SMF manifest for #{new_resource.name}"
   ::File.delete(new_resource.xml_file)

@@ -13,7 +13,7 @@ directory '/opt/local/etc/snmp/conf.d' do
 end
 
 template '/opt/scripts/SMFServicesOK.sh' do
- path '/opt/scripts/SMFServicesOK.sh'
+  path '/opt/scripts/SMFServicesOK.sh'
   source 'SMFServicesOK.sh.erb'
   mode '0755'
 end
@@ -23,4 +23,3 @@ template 'SMFServicesOK.snmpd.conf' do
   source 'SMFServicesOK.snmpd.conf.erb'
   mode '0644'
 end
-
