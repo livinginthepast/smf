@@ -2,7 +2,7 @@
 #
 
 module SMFProperties
-  # The set of changes to be applied to properties.
+  # The set of changes to be applied to a service's properties.
   class Changes
     require 'rexml/document'
     require 'chef/mixin/shell_out'
@@ -134,6 +134,7 @@ module SMFProperties
     end
 
     def compare_prop_values(group, property, values)
+      # false if anything doesn't match
       match = true
       value_array = make_value_array(values)
       value_index = 0
@@ -149,6 +150,7 @@ module SMFProperties
     end
 
     def compare_prop_glob(group, property, values)
+      # true if any match
       value_array = make_value_array(values)
       match = false
       @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']//value_node") do |element|

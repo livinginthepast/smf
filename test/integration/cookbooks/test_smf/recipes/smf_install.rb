@@ -1,15 +1,5 @@
 include_recipe 'smf'
 
-smf 'thing' do
-  fmri 'thing'
-  start_command 'true'
-  stop_command 'true'
-  duration 'transient'
-  notifies :restart, 'service[thing]'
-end
-
-service 'thing'
-
 smf 'create_thing2' do
   name 'thing2'
   fmri 'thing2'
@@ -26,3 +16,13 @@ smf 'create_thing2' do
     }
   })
 end
+
+smf 'thing' do
+  fmri 'thing'
+  start_command 'true'
+  stop_command 'true'
+  duration 'transient'
+  notifies :restart, 'service[thing]'
+end
+
+service 'thing'
