@@ -3,7 +3,11 @@ source 'https://rubygems.org'
 group :development do
   gem 'rake'
   gem 'berkshelf'
-  gem 'test-kitchen'
-  gem 'kitchen-vagrant'
   gem 'emeril'
+  gem 'foodcritic'
+  gem 'kitchen-vagrant'
+  gem 'rubocop'
+  gem 'tailor'
+  gem 'test-kitchen'
+  gem 'strainer'
 end

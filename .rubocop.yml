@@ -1,0 +1,14 @@
+Metrics/AbcSize:
+  Enabled: false
+Metrics/LineLength:
+  Max: 134
+Metrics/MethodLength:
+  Max: 15
+Style/DoubleNegation:
+  Enabled: false
+Style/FileName:
+  Enabled: false
+Style/MultilineOperationIndentation:
+  Enabled: false
+Style/SingleLineBlockParams:
+  Enabled: false

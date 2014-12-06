@@ -101,9 +101,7 @@ module SMFManifest
           end
 
           service.method_context(exec_context) do |context|
-            if user != 'root'
-              context.method_credential(credentials)
-            end
+            context.method_credential(credentials) if user != 'root'
 
             if environment
               context.method_environment do |env|

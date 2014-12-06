@@ -89,33 +89,14 @@ end
 
 def checksum
   attributes = [
-    user,
-    credentials_user,
-    group,
-    project,
-    start_command,
-    start_timeout,
-    stop_command,
-    stop_timeout,
-    restart_command,
-    restart_timeout,
-    refresh_command,
-    refresh_timeout,
-    working_directory,
-    locale,
-    authorization,
-    manifest_type,
-    service_path,
-    duration,
-    ignore.to_s,
-    include_default_dependencies,
-    dependencies,
-    fmri,
-    stability,
-    environment_as_string,
-    privilege_list,
-    property_groups_as_string,
-    '0'
+    user, credentials_user, group,
+    project, start_command, start_timeout, stop_command,
+    stop_timeout, restart_command, restart_timeout,
+    refresh_command, refresh_timeout, working_directory,
+    locale, authorization, manifest_type, service_path,
+    duration, ignore.to_s, include_default_dependencies,
+    dependencies, fmri, stability, environment_as_string,
+    privilege_list, property_groups_as_string, '0'
   ]
   @checksum ||= Digest::MD5.hexdigest(attributes.join(':'))
 end
@@ -139,5 +120,5 @@ def property_groups_as_string
 end
 
 def smf_exists?
-  @smf_exists
+  !!@smf_exists
 end
