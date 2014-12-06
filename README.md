@@ -357,9 +357,9 @@ Please do not increment the cookbook version in a fork. Version updates
 will be done on the master branch after any pull requests are merged.
 
 When upstream changes are added to the master branch while you are
-working on a contribution, please rebase master into your branch. A pull
-request should be able to be merged through a fast-forward, without a
-merge commit.
+working on a contribution, please rebase master into your branch and
+force push. A pull request should be able to be merged through a
+fast-forward, without a merge commit.
 
 ## Testing
 
