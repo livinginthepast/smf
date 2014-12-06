@@ -4,9 +4,7 @@ require 'fileutils'
 include Chef::Mixin::ShellOut
 
 def load_current_resource
-  unless new_resource.fmri
-    find_fmri
-  end
+  find_fmri unless new_resource.fmri
 
   @current_resource = Chef::Resource::Smf.new(new_resource.name)
   @current_resource.fmri(new_resource.fmri)
@@ -31,7 +29,9 @@ action :add_rbac do
   service new_resource.name
 
   manage = execute "add SMF authorization to allow RBAC for #{new_resource.name}" do
-    command "svccfg -s #{new_resource.name} setprop general/action_authorization=astring: 'solaris.smf.manage.#{new_resource.authorization_name}'"
+    command "svccfg -s #{new_resource.name}" \
+            ' setprop general/action_authorization=astring:' \
+            "'solaris.smf.manage.#{new_resource.authorization_name}'"
     not_if "[ $(svcprop -p general/action_authorization #{new_resource.name}) == 'solaris.smf.manage.#{new_resource.authorization_name}' ]"
     notifies :reload, "service[#{new_resource.name}]"
   end
