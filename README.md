@@ -345,4 +345,26 @@ If you `notify :restart` any service from within the `smf` block or include a `r
 be aware that upgrading this cookbook may trigger a refresh or a registered notification on the first
 subsequent chef run.
 
+## Contributing
 
+* fork
+* file an issue to track updates/communication
+* add tests
+* rebase master into your branch
+* issue a pull request
+
+Please do not increment the cookbook version in a fork. Version updates
+will be done on the master branch after any pull requests are merged.
+
+When upstream changes are added to the master branch while you are
+working on a contribution, please rebase master into your branch. A pull
+request should be able to be merged through a fast-forward, without a
+merge commit.
+
+## Testing
+
+```bash
+bundle
+vagrant plugin install vagrant-smartos-zones
+bundle exec strainer test
+```
