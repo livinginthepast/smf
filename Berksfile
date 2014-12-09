@@ -1,10 +1,5 @@
-source 'http://y0319t1027.nordstrom.net'
-# source 'https://api.berkshelf.com'
+source 'https://api.berkshelf.com'
 
 metadata
 
-cookbook 'gem_source'
-cookbook 'chef_handler_elapsed_time'
-cookbook 'kitchen_aide', path: '../kitchen_aide'
-cookbook 'rbac', path: '../rbac'
 cookbook 'test_smf', path: 'test/integration/cookbooks/test_smf'

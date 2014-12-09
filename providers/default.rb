@@ -31,9 +31,9 @@ action :add_rbac do
 
   manage = execute "add SMF authorization to allow RBAC for #{new_resource.name}" do
     command "svccfg -s #{new_resource.name}" \
-            ' setprop general/action_authorization=astring:' \
-            "'solaris.smf.manage.#{new_resource.authorization_name}'"
-    not_if "[ $(svcprop -p general/action_authorization #{new_resource.name}) == 'solaris.smf.manage.#{new_resource.authorization_name}' ]"
+      ' setprop general/action_authorization=astring:' \
+        "'solaris.smf.manage.#{new_resource.authorization_name}'"
+      not_if "[ $(svcprop -p general/action_authorization #{new_resource.name}) == 'solaris.smf.manage.#{new_resource.authorization_name}' ]"
     notifies :reload, "service[#{new_resource.name}]"
   end
 
