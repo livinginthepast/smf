@@ -164,7 +164,8 @@ module SMFProperties
     end
 
     def make_value_array(values)
-      values.gsub(/^\(|\)$/, '').split
+      # values.gsub(/^\(|\)$/, '').split
+      values.gsub(/^\(|\)$/, '').scan(/"([^"]+)"|(\S+)/).flatten.compact
     end
   end
 end

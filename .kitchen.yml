@@ -26,5 +26,5 @@ suites:
       - recipe[smf::default]
       - recipe[test_smf::smf_install]
       - recipe[test_smf::smf_prop]
-      - recipe[kitchen_aide::solaris_busser]
+      - recipe[test_smf::smf_solaris_testing]
     attributes:
