@@ -16,12 +16,11 @@ module SMFProperties
 
     def set(fmri)
       changed = false
-      @existing_xml = REXML::Document.new
       @existing_xml = read_xml(fmri)
       @groups.each_pair do |group, properties|
         properties.each_pair do |property, values|
           unless matchprop(group, property, values)
-            setprop(fmri, group, property, values)
+            set_prop(fmri, group, property, values)
             changed = true
           end
         end
@@ -32,13 +31,12 @@ module SMFProperties
 
     def delete_values(fmri)
       changed = false
-      @existing_xml = REXML::Document.new
       @existing_xml = read_xml(fmri)
       @groups.each_pair do |group, properties|
         properties.each_pair do |property, values|
           make_value_array(values).each do |value|
             if matchprop_glob(group, property, value)
-              delprop_value(fmri, group, property, value)
+              del_prop_value(fmri, group, property, value)
               changed = true
             end
           end
@@ -50,12 +48,11 @@ module SMFProperties
 
     def delete(fmri)
       changed = false
-      @existing_xml = REXML::Document.new
       @existing_xml = read_xml(fmri)
       @groups.each_pair do |group, properties|
         properties.each_pair do |property, _values|
           if prop_exist?(group, property)
-            delprop(fmri, group, property)
+            del_prop(fmri, group, property)
             changed = true
           end
         end
@@ -110,19 +107,19 @@ module SMFProperties
       REXML::Document.new(shell_out!("/usr/sbin/svccfg export #{fmri}").stdout)
     end
 
-    def setprop(fmri, group, property, values)
+    def set_prop(fmri, group, property, values)
       prop_to_set = "#{fmri} setprop #{group}/#{property} = '#{values}'"
       shell_out!("/usr/sbin/svccfg -s #{prop_to_set}")
       Chef::Log.info("Set svc property: #{fmri} #{prop_to_set}")
     end
 
-    def delprop_value(fmri, group, property, value)
+    def del_prop_value(fmri, group, property, value)
       prop_to_del = "#{fmri} delpropvalue #{group}/#{property} #{value}"
       shell_out!("/usr/sbin/svccfg -s #{prop_to_del}")
-      Chef::Log.info("Set svc property: #{fmri} #{prop_to_del}")
+      Chef::Log.info("Delete svc property: #{fmri} #{prop_to_del}")
     end
 
-    def delprop(fmri, group, property)
+    def del_prop(fmri, group, property)
       prop_to_del = "#{fmri} delprop #{group}/#{property}"
       shell_out!("/usr/sbin/svccfg -s #{prop_to_del}")
       Chef::Log.info("Delete svc property: #{fmri} #{prop_to_del}")
@@ -164,7 +161,8 @@ module SMFProperties
     end
 
     def make_value_array(values)
-      # values.gsub(/^\(|\)$/, '').split
+      # Transform '("embedded blank" "entry2" "240")'
+      # To        ["embedded blank", "entry2", "240"]
       values.gsub(/^\(|\)$/, '').scan(/"([^"]+)"|(\S+)/).flatten.compact
     end
   end
