@@ -7,7 +7,7 @@ long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version '2.2.1'
 
 supports 'smartos'
-supports 'solaris', '>= 5.10'
+supports 'solaris'
 
 depends 'rbac', '>= 1.0.1'
 
