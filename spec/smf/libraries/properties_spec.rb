@@ -99,6 +99,13 @@ describe 'SMFproperty class setting properties' do
         expect(properties.set('network/dns/client')).to eq false
       end
     end
+    describe 'with quoted current values' do
+      pg_setting = { config: { nameserver: '("10.1.1.1" "10.1.1.2" "10.1.1.3")' } }
+      it 'should not change the value' do
+        properties = Changes.new(pg_setting)
+        expect(properties.set('network/dns/client')).to eq false
+      end
+    end
     describe 'with current values in a different order' do
       pg_setting = { config: { nameserver: '(10.1.1.3 10.1.1.2 10.1.1.1)' } }
       it 'should change the value' do

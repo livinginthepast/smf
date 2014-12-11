@@ -143,7 +143,7 @@ module SMFProperties
       value_array = make_value_array(values)
       value_index = 0
       @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']//value_node") do |element|
-        unless element.attributes['value'] == value_array[value_index]
+        unless value_array[value_index] && element.attributes['value'] == single_value_form(value_array[value_index])
           match = false
         end
         value_index += 1
