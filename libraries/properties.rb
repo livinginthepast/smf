@@ -68,8 +68,11 @@ module SMFProperties
       # A property with a single values is specified as a propval node.
       # If a property has a array of values the format is different and a property node is created.
       property_value = propval(group, property)
-      if property_value
-        return property_value == values
+      case
+      when property_value
+        return property_value == single_value_form(values)
+      when match_if_both_null(property_value, values)
+        return true
       else
         return prop_exist?(group, property) ? compare_prop_values(group, property, values) : false
       end
@@ -87,6 +90,10 @@ module SMFProperties
       end
     end
 
+    def match_if_both_null(property_value, values)
+      (!property_value || property_value.empty?) && (!single_value_form(values) || single_value_form(values).empty?)
+    end
+
     def prop_exist?(group, property)
       prop_type(group, property)
     end
@@ -94,13 +101,13 @@ module SMFProperties
     def propval(group, property)
       value = ''
       @existing_xml.elements.each("//property_group[@name='#{group}']//propval[@name='#{property}']") { |element| value = element.attributes['value'] }
-      value.empty? ? false : value
+      value.nil? || value.empty? ? false : value
     end
 
     def prop_type(group, property)
       type = ''
       @existing_xml.elements.each("//property_group[@name='#{group}']//property[@name='#{property}']") { |element| type = element.attributes['type'] }
-      type.empty? ? false : type
+      type.nil? || type.empty? ? false : type
     end
 
     def read_xml(fmri)
@@ -163,7 +170,16 @@ module SMFProperties
     def make_value_array(values)
       # Transform '("embedded blank" "entry2" "240")'
       # To        ["embedded blank", "entry2", "240"]
-      values.gsub(/^\(|\)$/, '').scan(/"([^"]+)"|(\S+)/).flatten.compact
+      single_value_form(values).scan(/"([^"]+)"|(\S+)/).flatten.compact
+    end
+
+    def single_value_form(values)
+      # no outer parens
+      # no outer quotes
+      # transform '("files dns")' 
+      # to        'files dns' 
+      values.gsub(/^\(|\)$/, '').gsub(/^\"|\"$/, '')
     end
   end
+
 end

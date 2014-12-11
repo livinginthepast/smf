@@ -33,6 +33,34 @@ describe 'SMFproperty class setting properties' do
         expect(properties.set('network/dns/client')).to eq true
       end
     end
+    describe 'with a single value property seperated by spaces' do
+      pg_setting = { config: { host: '("dns files")' } }
+      it 'should change the value' do
+        properties = Changes.new(pg_setting)
+        expect(properties.set('network/dns/client')).to eq true
+      end
+    end
+    describe 'reset with a single value property seperated by spaces' do
+      pg_setting = { config: { host: '("files dns")' } }
+      it 'should not change the value' do
+        properties = Changes.new(pg_setting)
+        expect(properties.set('network/dns/client')).to eq false
+      end
+    end
+    describe 'set a null value' do
+      pg_setting = { config: { option: '' } }
+      it 'should change the value' do
+        properties = Changes.new(pg_setting)
+        expect(properties.set('network/dns/client')).to eq true
+      end
+    end
+    describe 'reset a null value' do
+      pg_setting = { config: { nulloption: '' } }
+      it 'should not change the value' do
+        properties = Changes.new(pg_setting)
+        expect(properties.set('network/dns/client')).to eq false
+      end
+    end
   end
 
   context 'on multi valued property' do
@@ -173,6 +201,9 @@ def dnsxml
           <value_node value='10.1.1.3'/>
         </net_address_list>
       </property>
+      <propval name='option' type='astring' value='replaceme'/>
+      <propval name='nulloption' type='astring'/>
+      <propval name='host' type='astring' value='files dns'/>
     </property_group>
     <property_group name='sysconfig' type='sysconfig'>
       <propval name='group' type='astring' value='naming_services'/>
