@@ -7,6 +7,7 @@ group :development do
   gem 'foodcritic'
   gem 'kitchen-vagrant'
   gem 'rubocop'
+  gem 'rspec-core'
   gem 'tailor'
   gem 'test-kitchen'
   gem 'strainer'

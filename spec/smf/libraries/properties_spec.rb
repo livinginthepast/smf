@@ -164,12 +164,12 @@ describe 'Removing properties' do
 end
 
 def read_xml
-  Mixlib::ShellOut.stub(:new).and_return(shellout)
-  shellout.stub(:stdout).and_return(dnsxml)
-  shellout.stub(:run_command).and_return(nil)
-  shellout.stub(:live_stream).and_return(nil)
-  shellout.stub(:live_stream=).and_return(nil)
-  shellout.stub(:error!).and_return(nil)
+  allow(Mixlib::ShellOut).to receive(:new).and_return(shellout)
+  allow(shellout).to receive(:stdout).and_return(dnsxml)
+  allow(shellout).to receive(:run_command).and_return(nil)
+  allow(shellout).to receive(:live_stream).and_return(nil)
+  allow(shellout).to receive(:live_stream=).and_return(nil)
+  allow(shellout).to receive(:error!).and_return(nil)
 end
 
 def dnsxml
