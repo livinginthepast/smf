@@ -2,6 +2,7 @@
 require 'chef/mixin/shell_out'
 require 'fileutils'
 include Chef::Mixin::ShellOut
+use_inline_resources
 
 def load_current_resource
   find_fmri unless new_resource.fmri
@@ -30,9 +31,9 @@ action :add_rbac do
 
   manage = execute "add SMF authorization to allow RBAC for #{new_resource.name}" do
     command "svccfg -s #{new_resource.name}" \
-            ' setprop general/action_authorization=astring:' \
-            "'solaris.smf.manage.#{new_resource.authorization_name}'"
-    not_if "[ $(svcprop -p general/action_authorization #{new_resource.name}) == 'solaris.smf.manage.#{new_resource.authorization_name}' ]"
+      ' setprop general/action_authorization=astring:' \
+        "'solaris.smf.manage.#{new_resource.authorization_name}'"
+      not_if "[ $(svcprop -p general/action_authorization #{new_resource.name}) == 'solaris.smf.manage.#{new_resource.authorization_name}' ]"
     notifies :reload, "service[#{new_resource.name}]"
   end
 
@@ -62,6 +63,24 @@ action :delete do
 
     new_resource.updated_by_last_action(true)
   end
+end
+
+action :setprop do
+  Chef::Application.fatal!(Resource to be modified, "#{new_resource.name} does not exist", 8) unless smf_defined?(new_resource.fmri)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.set(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
+end
+
+action :delpropvalue do
+  Chef::Application.fatal!(Resource to be modified, "#{new_resource.name} does not exist", 8) unless smf_defined?(new_resource.fmri)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.delete_values(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
+end
+
+action :delprop do
+  Chef::Application.fatal!(Resource to be modified, "#{new_resource.name} does not exist", 8) unless smf_defined?(new_resource.fmri)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.delete(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
 end
 
 private
@@ -133,4 +152,8 @@ def deduplicate_manifest
     Chef::Log.debug "Removing duplicate SMF manifest reference from #{name}"
     shell_out! "svccfg -s #{name} delprop `svcprop #{name} | grep manifestfiles | grep -v #{new_resource.xml_file} | awk '{ print $1 }'` && svcadm refresh #{name}"
   end
+end
+
+def smf_defined?(fmri)
+  shell_out("svcs #{fmri}").exitstatus == 0
 end

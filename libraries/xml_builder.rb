@@ -14,8 +14,8 @@ module SMFManifest
 
     # delegate methods to :resource
     def_delegators :resource, :name, :authorization_name, :dependencies, :duration, :environment, :group, :ignore,
-                   :include_default_dependencies, :locale, :manifest_type,  :project, :property_groups,
-                   :service_path, :stability, :working_directory
+      :include_default_dependencies, :locale, :manifest_type, :project, :property_groups,
+      :service_path, :stability, :working_directory
 
     public
 
@@ -91,13 +91,13 @@ module SMFManifest
 
           dependencies.each do |dependency|
             service.dependency('name' => dependency['name'],
-                               'grouping' => dependency['grouping'],
-                               'restart_on' => dependency['restart_on'],
-                               'type' => dependency['type']) do |dep|
-              dependency['fmris'].each do |service_fmri|
-                dep.service_fmri('value' => service_fmri)
+              'grouping' => dependency['grouping'],
+              'restart_on' => dependency['restart_on'],
+              'type' => dependency['type']) do |dep|
+                dependency['fmris'].each do |service_fmri|
+                  dep.service_fmri('value' => service_fmri)
+                end
               end
-            end
           end
 
           service.method_context(exec_context) do |context|

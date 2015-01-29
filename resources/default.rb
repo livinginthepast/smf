@@ -2,7 +2,7 @@
 require 'chef/mixin/shell_out'
 include Chef::Mixin::ShellOut
 
-actions :install, :add_rbac, :delete
+actions :install, :add_rbac, :delete, :setprop, :delprop, :delpropvalue
 default_action :install
 
 attribute :name, kind_of: String, name_attribute: true, required: true
@@ -37,7 +37,7 @@ attribute :ignore, kind_of: [Array, NilClass], default: nil
 attribute :fmri, kind_of: String, default: nil
 
 attribute :stability, kind_of: String, equal_to: %(Standard Stable Evolving Unstable External Obsolete),
-                      default: 'Evolving'
+  default: 'Evolving'
 
 attribute :property_groups, kind_of: Hash, default: {}
 
