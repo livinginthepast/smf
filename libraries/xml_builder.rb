@@ -5,7 +5,13 @@
 #
 require 'forwardable'
 
+# rubocop:disable Metrics/ClassLength
 module SMFManifest
+  # XMLBuilder manages the translation of the SMF Chef resource attributes into
+  # XML that can be parsed by `svccfg import`.
+  #
+  #   SMFManifest::XMLBuilder.new(resource, node).to_xml
+  #
   class XMLBuilder
     # allow delegation
     extend Forwardable
@@ -14,7 +20,7 @@ module SMFManifest
 
     # delegate methods to :resource
     def_delegators :resource, :name, :authorization_name, :dependencies, :duration, :environment, :group, :ignore,
-                   :include_default_dependencies, :locale, :manifest_type,  :project, :property_groups,
+                   :include_default_dependencies, :locale, :manifest_type, :project, :property_groups,
                    :service_path, :stability, :working_directory
 
     public
@@ -83,7 +89,10 @@ module SMFManifest
 
           if include_default_dependencies
             default_dependencies.each do |dependency|
-              service.dependency('name' => dependency['name'], 'grouping' => 'require_all', 'restart_on' => 'none', 'type' => 'service') do |dep|
+              service.dependency('name' => dependency['name'],
+                                 'grouping' => 'require_all',
+                                 'restart_on' => 'none',
+                                 'type' => 'service') do |dep|
                 dep.service_fmri('value' => "svc:#{dependency['value']}")
               end
             end
@@ -119,8 +128,12 @@ module SMFManifest
           end
 
           service.property_group('name' => 'general', 'type' => 'framework') do |group|
-            group.propval('name' => 'action_authorization', 'type' => 'astring', 'value' => "solaris.smf.manage.#{authorization_name}")
-            group.propval('name' => 'value_authorization', 'type' => 'astring', 'value' => "solaris.smf.value.#{authorization_name}")
+            group.propval('name' => 'action_authorization',
+                          'type' => 'astring',
+                          'value' => "solaris.smf.manage.#{authorization_name}")
+            group.propval('name' => 'value_authorization',
+                          'type' => 'astring',
+                          'value' => "solaris.smf.value.#{authorization_name}")
           end
 
           if sets_duration? || ignores_faults?
@@ -193,3 +206,4 @@ module SMFManifest
     end
   end
 end
+# rubocop:enable Metrics/ClassLength

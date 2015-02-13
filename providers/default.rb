@@ -25,20 +25,21 @@ end
 
 action :add_rbac do
   create_rbac_definitions
-
   service new_resource.name
 
   manage = execute "add SMF authorization to allow RBAC for #{new_resource.name}" do
-    command "svccfg -s #{new_resource.name}" \
-            ' setprop general/action_authorization=astring:' \
+    command "svccfg -s #{new_resource.name} " \
+            'setprop general/action_authorization=astring:' \
             "'solaris.smf.manage.#{new_resource.authorization_name}'"
-    not_if "[ $(svcprop -p general/action_authorization #{new_resource.name}) == 'solaris.smf.manage.#{new_resource.authorization_name}' ]"
+    not_if { SMFManifest::RBACHelper.new(node, new_resource).authorization_set? }
     notifies :reload, "service[#{new_resource.name}]"
   end
 
   value = execute "add SMF value to allow RBAC for #{new_resource.name}" do
-    command "svccfg -s #{new_resource.name} setprop general/value_authorization=astring: 'solaris.smf.value.#{new_resource.authorization_name}'"
-    not_if "[ $(svcprop -p general/value_authorization #{new_resource.name}) == 'solaris.smf.value.#{new_resource.authorization_name}' ]"
+    command "svccfg -s #{new_resource.name} " \
+            'setprop general/value_authorization=astring: ' \
+            'solaris.smf.value.#{new_resource.authorization_name}'
+    not_if { SMFManifest::RBACHelper.new(node, new_resource).value_authorization_set? }
     notifies :reload, "service[#{new_resource.name}]"
   end
 
@@ -48,20 +49,22 @@ end
 action :delete do
   new_resource.updated_by_last_action(false)
 
-  if @current_resource.smf_exists?
-    service new_resource.name do
-      action [:stop, :disable]
-    end
+  return unless @current_resource.smf_exists?
 
-    execute "remove service #{new_resource.name} from SMF" do
-      command "svccfg delete #{new_resource.name}"
-    end
-
-    delete_manifest
-    new_resource.remove_checksum
-
-    new_resource.updated_by_last_action(true)
+  service new_resource.name do
+    action [:stop, :disable]
   end
+
+  execute "remove service #{new_resource.name} from SMF" do
+    command "svccfg delete #{new_resource.name}"
+  end
+
+  delete_manifest
+  new_resource.remove_checksum
+
+  new_resource.updated_by_last_action(true)
+end
+
 end
 
 private
@@ -129,8 +132,14 @@ def deduplicate_manifest
   name = new_resource.name
 
   duplicate_manifest = shell_out("svcprop #{name} | grep -c manifestfiles").stdout.strip.to_i > 1
-  if duplicate_manifest
-    Chef::Log.debug "Removing duplicate SMF manifest reference from #{name}"
-    shell_out! "svccfg -s #{name} delprop `svcprop #{name} | grep manifestfiles | grep -v #{new_resource.xml_file} | awk '{ print $1 }'` && svcadm refresh #{name}"
-  end
+  return unless duplicate_manifest
+
+  Chef::Log.debug "Removing duplicate SMF manifest reference from #{name}"
+  shell_out! "svccfg -s #{name} delprop " \
+             "`svcprop #{name} | grep manifestfiles | grep -v #{new_resource.xml_file} | awk '{ print $1 }'` " \
+             "&& svcadm refresh #{name}"
+end
+
+def smf_defined?(fmri)
+  shell_out("svcs #{fmri}").exitstatus == 0
 end
