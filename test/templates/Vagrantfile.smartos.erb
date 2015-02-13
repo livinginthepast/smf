@@ -5,13 +5,17 @@ Vagrant.configure("2") do |c|
   c.vm.box = "<%= config[:box] %>"
   c.vm.box_url = "<%= config[:box_url] %>"
 
-  c.vm.communicator = 'smartos'
-  c.global_zone.platform_image = 'latest'
-  c.zone.name = 'base64'
-  c.zone.brand = 'joyent'
-  c.zone.image = 'd34c301e-10c3-11e4-9b79-5f67ca448df0'
-  c.zone.memory = 3584
-  c.zone.disk_size = 5
+  c.ssh.insert_key = false
+
+  <% if config[:box].match('smartos') %>
+    c.vm.communicator = 'smartos'
+    c.global_zone.platform_image = 'latest'
+    c.zone.name = 'base64'
+    c.zone.brand = 'joyent'
+    c.zone.image = 'd34c301e-10c3-11e4-9b79-5f67ca448df0'
+    c.zone.memory = 3584
+    c.zone.disk_size = 5
+  <% end %>
 
   <% if config[:vm_hostname] %>
     c.vm.hostname = "<%= config[:vm_hostname] %>"
