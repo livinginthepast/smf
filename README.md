@@ -65,7 +65,7 @@ Ownership:
 * `group` - Group to run service commands as
 
 RBAC
-* `authorization` - What management and value authorizations should be
+* `authorization` — What management and value authorizations should be
   created for this service. Defaults to the service name.
 
 Dependency management:
@@ -93,7 +93,7 @@ Process management:
   if core dumps in children are handled by a master process and you 
   don't want SMF thinking the service is exploding, you can ignore 
   ["core", "signal"].
-* `privileges` - Array - An array of privileges to be allowed for started processes.
+* `privileges` — Array — An array of privileges to be allowed for started processes.
   Defaults to ['basic', 'net_privaddr']
 * `property_groups` - Hash - This should be in the form `{"group name" => {"type" => "application", "key" => "value", ...}}`
 * `working_directory` - PWD that SMF should cd to in order to run commands
