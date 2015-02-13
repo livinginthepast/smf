@@ -2,6 +2,7 @@
 require 'chef/mixin/shell_out'
 require 'fileutils'
 include Chef::Mixin::ShellOut
+use_inline_resources
 
 def load_current_resource
   find_fmri unless new_resource.fmri
@@ -65,6 +66,22 @@ action :delete do
   new_resource.updated_by_last_action(true)
 end
 
+action :setprop do
+  Chef::Application.fatal!(Resource to be modified, "#{new_resource.name} does not exist", 8) unless smf_defined?(new_resource.fmri)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.set(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
+end
+
+action :delpropvalue do
+  Chef::Application.fatal!(Resource to be modified, "#{new_resource.name} does not exist", 8) unless smf_defined?(new_resource.fmri)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.delete_values(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
+end
+
+action :delprop do
+  Chef::Application.fatal!(Resource to be modified, "#{new_resource.name} does not exist", 8) unless smf_defined?(new_resource.fmri)
+  properties = SMFProperties::Changes.new(new_resource.property_groups)
+  properties.delete(new_resource.fmri) ? new_resource.updated_by_last_action(true) : new_resource.updated_by_last_action(false)
 end
 
 private

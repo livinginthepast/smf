@@ -1,0 +1,52 @@
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='export'>
+  <service name='network/dns/client' type='service' version='0'>
+    <create_default_instance enabled='true'/>
+    <single_instance/>
+    <dependency name='filesystem' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/root'/>
+      <service_fmri value='svc:/system/filesystem/usr'/>
+      <service_fmri value='svc:/system/filesystem/minimal'/>
+    </dependency>
+    <property_group name='general' type='framework'>
+      <propval name='action_authorization' type='astring' value='solaris.smf.manage.name-service.dns.client'/>
+      <propval name='value_authorization' type='astring' value='solaris.smf.manage.name-service.dns.client'/>
+    </property_group>
+    <property_group name='startd' type='framework'>
+      <propval name='duration' type='astring' value='transient'/>
+    </property_group>
+    <property_group name='config' type='application'>
+      <propval name='value_authorization' type='astring' value='solaris.smf.value.name-service.dns.client'/>
+      <propval name='search' type='astring' value='mydomain.net'/>
+      <property name='nameserver' type='net_address'>
+        <net_address_list>
+          <value_node value='10.1.1.1'/>
+          <value_node value='10.1.1.2'/>
+          <value_node value='10.1.1.3'/>
+        </net_address_list>
+      </property>
+      <propval name='option' type='astring' value='replaceme'/>
+      <propval name='nulloption' type='astring'/>
+      <propval name='host' type='astring' value='files dns'/>
+    </property_group>
+    <property_group name='sysconfig' type='sysconfig'>
+      <propval name='group' type='astring' value='naming_services'/>
+      <property name='config_properties' type='astring'>
+        <astring_list>
+          <value_node value='sc_dns_nameserver:config/nameserver'/>
+          <value_node value='sc_dns_search:config/search'/>
+        </astring_list>
+      </property>
+    </property_group>
+    <stability value='Unstable'/>
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>DNS resolver</loctext>
+      </common_name>
+      <documentation>
+        <manpage title='resolver' section='3RESOLV' manpath='/usr/share/man'/>
+      </documentation>
+    </template>
+  </service>
+</service_bundle>

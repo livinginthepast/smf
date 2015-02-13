@@ -25,4 +25,5 @@ suites:
   - name: install
     run_list:
       - recipe[test_smf::smf_install]
+      - recipe[test_smf::smf_solaris_testing]
     attributes:

@@ -2,7 +2,7 @@
 require 'chef/mixin/shell_out'
 include Chef::Mixin::ShellOut
 
-actions :install, :add_rbac, :delete
+actions :install, :add_rbac, :delete, :setprop, :delprop, :delpropvalue
 default_action :install
 
 attribute :name, kind_of: String, name_attribute: true, required: true
