@@ -91,7 +91,7 @@ smf "unicorn" do
 end
 ```
 
-### SideKiq
+### Sidekiq
 
 ```ruby
 rails_env     = node[:rails_env]
