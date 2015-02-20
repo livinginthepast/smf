@@ -10,6 +10,7 @@ platforms:
     driver:
       box: oracle-solaris-11
       box_url: https://vagrantcloud.com/ruby-concurrency/oracle-solaris-11/version/1/provider/virtualbox.box
+      vagrantfile_erb: test/templates/Vagrantfile.smartos.erb
   - name: smartos
     driver:
       box: livinginthepast/smartos-base64
