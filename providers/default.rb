@@ -65,8 +65,6 @@ action :delete do
   new_resource.updated_by_last_action(true)
 end
 
-end
-
 private
 
 def smf_changed?
