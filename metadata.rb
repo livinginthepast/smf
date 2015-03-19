@@ -10,4 +10,4 @@ supports 'smartos'
 
 depends 'rbac', '>= 1.0.1'
 
-recommends 'resource-control' # For managing Solaris projects, when setting project on a manifest
+suggests 'resource-control' # For managing Solaris projects, when setting project on a manifest
