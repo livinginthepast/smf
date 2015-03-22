@@ -30,29 +30,29 @@ Note that we run the `smf::default` recipe before using LWRPs from this
 cookbook.
 
 ```ruby
-include_recipe "smf"
+include_recipe 'smf'
 
-smf "my-service" do
-  user "non-root-user"
-  start_command "my-service start"
+smf 'my-service' do
+  user 'non-root-user'
+  start_command 'my-service start'
   start_timeout 10
-  stop_command "pkill my-service"
-  stop_command  5
-  restart_command "my-service restart"
+  stop_command 'pkill my-service'
+  stop_timeout  5
+  restart_command 'my-service restart'
   restart_timeout 60
-  environment "PATH" => "/home/non-root-user/bin",
-              "RAILS_ENV" => "staging"
-  locale "C"
-  manifest_type "application"
-  service_path  "/var/svc/manifest"
-  notify :restart, 'service[my-service]'
+  environment 'PATH' => '/home/non-root-user/bin',
+              'RAILS_ENV' => 'staging'
+  locale 'C'
+  manifest_type 'application'
+  service_path  '/var/svc/manifest'
+  notifies :restart, 'service[my-service]'
 end
 
-service "my-service" do
+service 'my-service' do
   action :enable
 end
 
-service "my-service" do
+service 'my-service' do
   action :restart
 end
 ```
